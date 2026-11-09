@@ -1,0 +1,12 @@
+# macOS metadata
+.DS_Store
+
+# Local runs of the pack: EntraOps results and Maester output contain tenant data, never committed.
+# The synthetic results of the checks (ci/fixtures/findings.json) are the exception.
+Reports/
+EntraOps-Reporting/
+findings.json
+!ci/fixtures/findings.json
+test-results/
+maester-config.json
+maester-packs.lock.json

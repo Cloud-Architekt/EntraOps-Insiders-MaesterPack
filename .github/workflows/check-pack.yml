@@ -1,0 +1,46 @@
+name: Check pack
+
+# The checks of the pack (ci/PackChecks.ps1) without a tenant connection. Pull requests run them here; pushes to
+# main run them through Release, and Sync from EntraOps starts them on its pull request (workflow_dispatch),
+# because a pull request opened with the workflow token starts no workflow.
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  # The Maester and Pester versions of the checks. Dependabot doesn't update PowerShell modules: raise them here.
+  MAESTER_VERSION: 3.0.0-rc67
+  PESTER_VERSION: 6.2.0
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the pack
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install Maester and Pester
+        shell: pwsh
+        run: |
+          $prerelease = $env:MAESTER_VERSION -match '-'
+          Install-PSResource -Name Maester -Version $env:MAESTER_VERSION -Prerelease:$prerelease -Repository PSGallery -TrustRepository -Scope CurrentUser
+          Install-PSResource -Name Pester -Version $env:PESTER_VERSION -Repository PSGallery -TrustRepository -Scope CurrentUser
+
+      - name: Check the pack
+        shell: pwsh
+        run: |
+          Import-Module Pester -RequiredVersion $env:PESTER_VERSION
+          $configuration = New-PesterConfiguration
+          $configuration.Run.Container = New-PesterContainer -ScriptBlock { . ./ci/PackChecks.ps1; Invoke-EntraOpsPackCheck }
+          $configuration.Run.Exit = $true
+          $configuration.Output.Verbosity = 'Detailed'
+          $configuration.Output.CIFormat = 'GithubActions'
+          Invoke-Pester -Configuration $configuration

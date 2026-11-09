@@ -1,0 +1,89 @@
+name: Bug report
+description: Report a reproducible problem of the EntraOps Maester Pack
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues before reporting a new defect. Do not include credentials, tokens, `findings.json` or unredacted tenant data.
+        A finding you consider wrong, a missing check or a threshold belongs to [EntraOps](https://github.com/Cloud-Architekt/EntraOps/issues), which evaluates the checks.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and its impact.
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Affected area
+      description: Select the area most directly affected by this issue.
+      options:
+        - Installation or update (Install-MtPack, Restore-MtPack, Update-MtPack)
+        - Finding the results (findings.json, EntraOps.FindingsPath, ENTRAOPS_ROOT)
+        - Result of a test in Maester (passed, failed, skipped, error)
+        - Finding exceptions (dismissed or risk-accepted findings)
+        - Settings (maester-config.json)
+        - Documentation, guide or test description
+        - Other or unsure
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest reproducible sequence, the commands and the relevant settings.
+      placeholder: |
+        1. Run Invoke-EntraOpsAssessment ...
+        2. Run Invoke-Maester -Pack EOPS ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: test-result
+    attributes:
+      label: Sanitized test result (optional)
+      description: Paste the test ID and its result or skip reason from the Maester report. Redact tenant names and IDs, UPNs, object IDs and display names.
+      placeholder: MP.EOPS.1001 - Skipped - ...
+    validations:
+      required: false
+  - type: input
+    id: pack-version
+    attributes:
+      label: Pack version
+      placeholder: 1.2.0
+    validations:
+      required: true
+  - type: input
+    id: entraops-version
+    attributes:
+      label: EntraOps version that wrote findings.json
+      placeholder: 1.2.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the Maester and PowerShell versions, operating system, and execution environment.
+      placeholder: Maester 3.0.0, PowerShell 7.4, Ubuntu, GitHub Actions
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I removed secrets, tokens, personal data, and tenant-sensitive data from this report.
+          required: true

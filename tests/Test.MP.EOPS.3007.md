@@ -1,0 +1,27 @@
+A Control or Management Plane role can be activated without approval. Every eligible user, and an attacker in control of such an account, can activate the role alone. With approval turned on but no approvers selected, the Privileged Role Administrators approve.
+
+EntraOps evaluates this rule as EO.3007 (PimRequestFlow.noApprovalActivation). The EntraOps reports show the same result as the finding 'Privileged role can be activated without approval'.
+
+#### Remediation action
+
+In Microsoft Entra admin center > ID Governance > Privileged Identity Management > Microsoft Entra roles > Settings > the role > Activation, turn on 'Require approval to activate' and select approvers of the role's tier. For frequently used roles, weigh approval against operations and compensate with an authentication context and activation alerts.
+
+| Implementation effort | User impact |
+| --- | --- |
+| Low: One setting per role, plus approvers who are available when needed. | High: Every activation waits for an approver, which delays administrative tasks. |
+
+#### Dismiss or accept a finding
+
+A finding that is a false positive, or whose risk is accepted until a date, is an exception in the EntraOps Finding Exceptions File (`Findings.ExceptionsFilePath`, default `./Classification/FindingExceptions.json`). The test doesn't fail for it: with dismissed findings only it passes, and with risk-accepted findings but no open one it is skipped with the accepted risks as the reason, because the control is not met. Add exceptions in the Findings view of the EntraOps Privileged Assets report (*Accept* at an affected object of EO.3007) and export the file to the EntraOps folder; the next EntraOps evaluation applies it.
+
+#### Related links
+
+- [Approve or deny requests for Microsoft Entra roles in PIM](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-approval-workflow)
+- [Configure Microsoft Entra role settings in PIM](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings)
+- [Overview of PIM rules (unifiedRoleManagementPolicy)](https://learn.microsoft.com/graph/identity-governance-pim-rules-overview)
+- [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
+- [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
+- [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)
+
+<!--- Results --->
+%TestResult%

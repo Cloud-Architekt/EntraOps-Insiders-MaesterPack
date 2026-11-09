@@ -1,0 +1,6 @@
+{
+  "GlobalSettings": {
+    "EntraOps.FindingsPath": "./EntraOps-Reporting/Findings/data",
+    "EntraOps.MaxFindingsAgeDays": 7
+  }
+}

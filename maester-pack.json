@@ -1,0 +1,93 @@
+{
+  "$schema": "https://maester.dev/schemas/maester-pack-1.0.json",
+  "Id": "cloud-architekt.entraops",
+  "Guid": "01964975-3423-4c3e-a3a0-b2510e0d6e39",
+  "Name": "EntraOps",
+  "Description": "Reports the EntraOps findings on privileged access: Enterprise Access Model tier breaches, classification, standing access, account protection, workload identities, PIM, access packages and drift.",
+  "Version": "1.2.0",
+  "Publisher": "Cloud-Architekt",
+  "License": "MIT",
+  "Homepage": "https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack",
+  "Support": "https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack/issues",
+  "SecurityContact": "https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack/security/policy",
+  "RequiresMaester": ">=3.0",
+  "Code": "EOPS",
+  "Suites": [
+    "tests"
+  ],
+  "Helpers": [
+    "helpers"
+  ],
+  "Uses": {
+    "Services": [],
+    "GraphScopes": [],
+    "TenantWrites": [],
+    "Network": [],
+    "Modules": []
+  },
+  "Categories": [
+    "Identity",
+    "Privileged access",
+    "Enterprise Access Model"
+  ],
+  "Guide": "maester-pack.guide.json",
+  "Banner": "assets/banner.png",
+  "Report": {
+    "Navigation": [
+      {
+        "Title": "Overview",
+        "View": "pack"
+      },
+      {
+        "Section": "Findings",
+        "Items": [
+          {
+            "Title": "All results",
+            "Id": "results",
+            "View": "tests"
+          },
+          {
+            "Title": "Not met",
+            "Id": "not-met",
+            "View": "tests",
+            "Result": "Failed"
+          },
+          {
+            "Title": "Not evaluated",
+            "Id": "not-evaluated",
+            "View": "tests",
+            "Result": "Skipped"
+          }
+        ]
+      },
+      {
+        "Section": "Set up",
+        "Items": [
+          {
+            "Title": "Get started",
+            "Id": "start",
+            "View": "guide",
+            "Page": "start"
+          },
+          {
+            "Title": "Connect",
+            "Id": "connect",
+            "View": "guide",
+            "Page": "connect"
+          },
+          {
+            "Title": "Run",
+            "Id": "run",
+            "View": "guide",
+            "Page": "run"
+          }
+        ]
+      },
+      {
+        "Title": "About this pack",
+        "Id": "about",
+        "View": "about"
+      }
+    ]
+  }
+}

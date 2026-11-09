@@ -1,0 +1,63 @@
+name: Release
+
+# Checks every push to main and, once the Actions variable PACK_RELEASES is true, releases the version of the
+# pack when it has no release yet: tags the commit v<Version> and publishes the release with the section of the
+# version in CHANGELOG.md as its notes.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    uses: ./.github/workflows/check-pack.yml
+
+  release:
+    needs: check
+    if: vars.PACK_RELEASES == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the pack
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Release the version of the pack
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $manifest = Get-Content -LiteralPath maester-pack.json -Raw | ConvertFrom-Json
+          $source = Get-Content -LiteralPath entraops-source.json -Raw | ConvertFrom-Json
+          $version = $manifest.Version
+          $tag = "v$version"
+
+          if (@(gh release list --repo $env:GITHUB_REPOSITORY --limit 1000 --json tagName --jq '.[].tagName') -contains $tag) {
+              Write-Host "$tag is released already."
+              exit 0
+          }
+          if (gh api "repos/$env:GITHUB_REPOSITORY/git/matching-refs/tags/$tag" --jq ".[] | select(.ref == `"refs/tags/$tag`") | .ref") {
+              throw "The tag $tag exists without a release. Remove it or publish its release by hand."
+          }
+          if ($source.Version -ne $version) { throw "entraops-source.json has the version $($source.Version), maester-pack.json $version. Run Sync from EntraOps." }
+          if ($source.LocalChanges -ne $false) { throw "The pack was generated from local EntraOps changes (LocalChanges in entraops-source.json). Run Sync from EntraOps for an EntraOps tag or commit." }
+          if ($manifest.Homepage -ne "https://github.com/$env:GITHUB_REPOSITORY") { throw "The links of the pack point to $($manifest.Homepage), not to this repository. Run Set-EntraOpsPackRepository (tools/)." }
+
+          $changelog = Get-Content -LiteralPath CHANGELOG.md -Raw
+          $section = [regex]::Match($changelog, '(?ms)^## ' + [regex]::Escape($version) + '\s*$\r?\n(.*?)(?=^## |\z)')
+          if (-not $section.Success -or [string]::IsNullOrWhiteSpace($section.Groups[1].Value)) { throw "CHANGELOG.md has no section '## $version' with the changes." }
+          $section.Groups[1].Value.Trim() | Set-Content -LiteralPath "$env:RUNNER_TEMP/release-notes.md"
+
+          gh release create $tag --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "EntraOps Maester Pack $version" --notes-file "$env:RUNNER_TEMP/release-notes.md"

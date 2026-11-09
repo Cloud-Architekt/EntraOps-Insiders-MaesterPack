@@ -1,0 +1,90 @@
+{
+  "$schema": "https://maester.dev/schemas/maester-pack-guide-1.0.json",
+  "Summary": "Reports the EntraOps findings on privileged access in Maester: Enterprise Access Model tier breaches, standing access, account protection, workload identities, PIM activation and approval, access packages, access drift from access packages (Access Guardian) and changes between snapshots. EntraOps evaluates the checks; the pack reads its results (findings.json) and needs no connection, no permission and no module.",
+  "Prerequisites": [
+    {
+      "Text": "PowerShell 7.4 or later and Maester 3.0 or later."
+    },
+    {
+      "Text": "EntraOps 1.2.0 or later, which evaluates the checks and saves the results to findings.json: Invoke-EntraOpsAssessment (without EntraOps in place) or New-EntraOpsReportingData (in an EntraOps repository). The EntraOps reporting pipelines (GitHub Actions and Azure DevOps) publish it in the EntraOps-Reporting artifact (Findings/data/findings.json).",
+      "More": "https://www.entraops.com/docs/reportings/index.html#findings"
+    },
+    {
+      "Text": "The results in Reports/Findings/data of the EntraOps working folder (ENTRAOPS_ROOT, <home>/EntraOps or the current folder), or the EntraOps.FindingsPath setting in maester-config.json for another location."
+    }
+  ],
+  "Connect": {
+    "Steps": [
+      {
+        "Text": "Without EntraOps in place: run a complete EntraOps assessment, which saves the results to Reports/Findings/data/findings.json of the EntraOps working folder.",
+        "Command": "Install-PSResource -Name EntraOps -Repository PSGallery -Scope CurrentUser; Invoke-EntraOpsAssessment -TenantName 'contoso.onmicrosoft.com'"
+      },
+      {
+        "Text": "With an EntraOps repository: generate the reports and the results in your clone, or download the newest EntraOps-Reporting artifact and set EntraOps.FindingsPath to its Findings/data folder.",
+        "Command": "New-EntraOpsReportingData"
+      }
+    ],
+    "Notes": [
+      "The pack only reads findings.json; it does not call Microsoft Graph or any other service.",
+      "When Microsoft Graph is connected (by Maester or earlier in the session), results of another tenant are skipped; with -SkipGraphConnect the tenant cannot be compared, so each result names the tenant and the date of the EntraOps results. Results older than EntraOps.MaxFindingsAgeDays (default 7) are skipped too."
+    ]
+  },
+  "Run": {
+    "Commands": [
+      {
+        "Text": "Only this pack, without connecting to Microsoft Graph",
+        "Command": "Invoke-Maester -Pack EOPS -SkipBuiltIn -SkipGraphConnect"
+      },
+      {
+        "Text": "Maester's tests and this pack",
+        "Command": "Invoke-Maester -Pack EOPS"
+      }
+    ],
+    "Options": [
+      {
+        "Name": "EntraOps.FindingsPath",
+        "Text": "The findings.json of EntraOps, or the folder that holds it (for example ./EntraOps-Reporting/Findings/data). Without it, the pack reads Reports/Findings/data of ENTRAOPS_ROOT, <home>/EntraOps or the current folder.",
+        "Default": "Reports/Findings/data of the EntraOps working folder"
+      },
+      {
+        "Name": "EntraOps.MaxFindingsAgeDays",
+        "Default": "7",
+        "Text": "Results older than this are skipped. 0 turns the check off."
+      },
+      {
+        "Name": "EntraOpsConfig.json: Findings",
+        "Text": "Excluded rules and the thresholds of the checks are set in EntraOps, which evaluates the checks (Findings section of EntraOpsConfig.json, see https://www.entraops.com/docs/reportings/index.html#findings). Excluded rules are skipped here."
+      },
+      {
+        "Name": "EntraOps Finding Exceptions File",
+        "Default": "./Classification/FindingExceptions.json",
+        "Text": "Dismissed and risk-accepted findings are exceptions in EntraOps (Findings.ExceptionsFilePath, maintained in the Findings view of the Privileged Assets report). Dismissed findings (false positives) pass a test; a test with risk-accepted findings and no open one is skipped with the accepted risks as the reason. Expired exceptions report their findings again. See https://www.entraops.com/docs/reportings/index.html#finding-exceptions."
+      }
+    ]
+  },
+  "AppOnly": {
+    "Supported": true,
+    "Methods": {
+      "Certificate": true,
+      "ClientSecret": true,
+      "ManagedIdentity": true,
+      "WorkloadIdentity": true
+    },
+    "Text": "The pack needs no permission and no connection. In a pipeline, download the EntraOps-Reporting artifact and run Invoke-Maester -Pack EOPS -SkipBuiltIn -SkipGraphConnect -NonInteractive, or connect Maester as usual to run it with Maester's own tests."
+  },
+  "Support": {
+    "Pack": "https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack/issues",
+    "Tests": "https://github.com/Cloud-Architekt/EntraOps/issues",
+    "More": "https://www.entraops.com"
+  },
+  "Links": [
+    {
+      "Text": "EntraOps",
+      "Url": "https://github.com/Cloud-Architekt/EntraOps"
+    },
+    {
+      "Text": "Findings and Maester Pack",
+      "Url": "https://www.entraops.com/docs/reportings/index.html#findings"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "Id": "EOPS.Findings",
+  "Name": "EntraOps findings",
+  "HelpUrlTemplate": "https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack/blob/main/tests/Test.{Id}.md",
+  "Tags": [
+    "EntraOps"
+  ]
+}
