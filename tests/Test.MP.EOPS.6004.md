@@ -1,4 +1,4 @@
-The access drift report of Microsoft Entra ID Governance (Access Guardian, preview) shows active access package assignments whose membership or application role assignment of a Control or Management Plane group or application is missing. The access was removed outside of the access package, or provisioning failed.
+**Fails when:** The access drift report of Microsoft Entra ID Governance (Access Guardian, preview) shows active access package assignments whose membership or application role assignment of a Control or Management Plane group or application is missing. The access was removed outside of the access package, or provisioning failed.
 
 EntraOps evaluates this rule as EO.6004 (AccessPackageFlow.missingAccess). The EntraOps reports show the same result as the finding 'Missing access on privileged access package resource'.
 

@@ -9,7 +9,9 @@ function Test-EntraOpsHistoryTierBreachIncrease {
     [MaesterTest(
         Id                 = 'MP.EOPS.8002',
         Title              = 'No new tier breach since the previous snapshot.',
-        Severity           = 'Info',
+        Severity           = 'High',
+        UserImpact         = 'Low',
+        ImplementationCost = 'Low',
         Product            = 'entra',
         Feature            = 'roles',
         Area               = 'privileged-access',

@@ -1,4 +1,4 @@
-A group with Control or Management Plane access has owners. Owners can add members, including themselves, at any time without approval or PIM, and so grant the group's privileges.
+**Fails when:** A group with Control or Management Plane access has owners. Owners can add members, including themselves, at any time without approval or PIM, and so grant the group's privileges.
 
 EntraOps evaluates this rule as EO.7002 (PrivilegedEAM.privilegedGroupOwner). The EntraOps reports show the same result as the finding 'Owner of a privileged group'.
 

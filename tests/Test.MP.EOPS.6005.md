@@ -1,4 +1,4 @@
-An assignment policy of an access package that grants a Control or Management Plane resource has no expiration, so its assignments last until someone removes them, even when the person no longer needs the access.
+**Fails when:** An assignment policy of an access package that grants a Control or Management Plane resource has no expiration, so its assignments last until someone removes them, even when the person no longer needs the access.
 
 EntraOps evaluates this rule as EO.6005 (TenantGovernance.accessPackageExpiration). The EntraOps reports show the same result as the finding 'Privileged access package without expiration'.
 

@@ -1,4 +1,4 @@
-An assignment policy of an access package that grants a Control or Management Plane resource has no recurring access review, so nobody confirms that the assigned users still need the privileged access.
+**Fails when:** An assignment policy of an access package that grants a Control or Management Plane resource has no recurring access review, so nobody confirms that the assigned users still need the privileged access.
 
 EntraOps evaluates this rule as EO.6006 (TenantGovernance.accessPackageAccessReview). The EntraOps reports show the same result as the finding 'Privileged access package without access review'.
 

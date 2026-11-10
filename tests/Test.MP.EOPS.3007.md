@@ -1,4 +1,4 @@
-A Control or Management Plane role can be activated without approval. Every eligible user, and an attacker in control of such an account, can activate the role alone. With approval turned on but no approvers selected, the Privileged Role Administrators approve.
+**Fails when:** A Control or Management Plane role can be activated without approval. Every eligible user, and an attacker in control of such an account, can activate the role alone. With approval turned on but no approvers selected, the Privileged Role Administrators approve.
 
 EntraOps evaluates this rule as EO.3007 (PimRequestFlow.noApprovalActivation). The EntraOps reports show the same result as the finding 'Privileged role can be activated without approval'.
 

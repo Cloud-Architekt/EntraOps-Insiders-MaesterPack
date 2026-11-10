@@ -1,4 +1,4 @@
-An agent identity or agent user has no sponsor. Agent identity blueprints and their principals in the tenant are not reported: the sponsors of a blueprint are kept on the blueprint application. The sponsor is the person accountable for the agent's purpose and lifecycle; without one, nobody reviews or ends its access.
+**Fails when:** An agent identity or agent user has no sponsor. Agent identity blueprints and their principals in the tenant are not reported: the sponsors of a blueprint are kept on the blueprint application. The sponsor is the person accountable for the agent's purpose and lifecycle; without one, nobody reviews or ends its access.
 
 EntraOps evaluates this rule as EO.5003 (PrivilegedAssets.sponsorMissing). The EntraOps reports show the same result as the finding 'No sponsor'.
 

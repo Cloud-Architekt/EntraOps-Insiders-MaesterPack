@@ -1,4 +1,4 @@
-Activations of a Control Plane role can last longer than the configured maximum (Findings.ControlPlaneActivationMaxHours, default 4 hours; the PIM default is 8 hours). The longer an activation lasts, the longer a stolen session or token holds Control Plane access.
+**Fails when:** Activations of a Control Plane role can last longer than the configured maximum (Findings.ControlPlaneActivationMaxHours, default 4 hours; the PIM default is 8 hours). The longer an activation lasts, the longer a stolen session or token holds Control Plane access.
 
 EntraOps evaluates this rule as EO.3013 (TenantGovernance.controlPlaneActivationDuration). The EntraOps reports show the same result as the finding 'Long Control Plane role activation'.
 

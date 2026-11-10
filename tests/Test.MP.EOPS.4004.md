@@ -1,4 +1,4 @@
-A group with Control or Management Plane access is neither role-assignable nor a member of a restricted management administrative unit. Group owners and administrators who can manage groups (for example Groups Administrator or User Administrator) can then change its members and take over its access.
+**Fails when:** A group with Control or Management Plane access is neither role-assignable nor a member of a restricted management administrative unit. Group owners and administrators who can manage groups (for example Groups Administrator or User Administrator) can then change its members and take over its access.
 
 EntraOps evaluates this rule as EO.4004 (PrivilegedEAM.unprotectedPrivilegedGroup). The EntraOps reports show the same result as the finding 'Privileged group without restricted management'.
 

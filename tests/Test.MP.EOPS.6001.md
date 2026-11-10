@@ -1,4 +1,4 @@
-An assignment policy that accepts requests grants a Control or Management Plane resource without approval, so every allowed requestor gets the privileged access on request. Policies that only administrators can assign are not reported.
+**Fails when:** An assignment policy that accepts requests grants a Control or Management Plane resource without approval, so every allowed requestor gets the privileged access on request. Policies that only administrators can assign are not reported.
 
 EntraOps evaluates this rule as EO.6001 (AccessPackageFlow.noApproval). The EntraOps reports show the same result as the finding 'No approval for privileged access package resource'.
 

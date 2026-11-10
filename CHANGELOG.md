@@ -53,7 +53,7 @@ module it is generated from; the release workflow uses the section of a version 
   of Failed. Results of EntraOps versions without the flag still report them as Failed.
 - The results show the affected objects in tables of two columns, so they fit the result panel of the Maester
   report. Objects with the same finding share a section: the finding once, then a table of the objects with their
-  evidence and links ("142 PIM role settings: Can be activated without approval."). Objects with several findings
+  evidence and links ("Can be activated without approval. — 142 PIM role settings:"). Objects with several findings
   are named once, with the number of their findings and the links that all of them share, and their findings in
   the rows below. Findings of an object that differ in one name only are one row that names them all, each linked
   to its own report ("at lab-landingzones, lab-platform and secplaybook-rg", or the 29 delegated permissions of
@@ -67,6 +67,13 @@ module it is generated from; the release workflow uses the section of a version 
   analysis, Configuration; the tooltip names the report). Emphasis is sparing: the tiers and the role or
   permission of a finding in bold, the evidence in italics, IDs as code; other names are plain text. The summary
   has one line per fact with its icon.
+- The severity Info is used only for the checks that ask for a review (Investigate): `MP.EOPS.4009` (work account)
+  is Low and `MP.EOPS.8002` (new tier breach) is High. The documentation of a test starts with "Fails when:" (or
+  "Reported when:" for a review), as Maester shows it with passed tests as well.
+- A failed test says how many of its findings are on unclassified objects and lists these objects last: classify
+  them first (`MP.EOPS.2001`). Counts are written out ("1 affected instance", "87 affected instances").
+- The release refuses a pack whose test links do not open (the Docs page of a test, the EntraOps rule catalog and
+  the sections of the EntraOps documentation).
 - When the results cannot be used, all tests are skipped with the reason and what to do, and `Invoke-Maester`
   shows it once as a warning: no `findings.json` (with the full path checked, also for a relative
   `EntraOps.FindingsPath`, which may start with `~`), a file that is empty, cut off or no EntraOps finding results

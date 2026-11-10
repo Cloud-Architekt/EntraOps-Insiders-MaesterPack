@@ -1,4 +1,4 @@
-Active assignments of a Control or Management Plane role can be created without multifactor authentication at assignment time ('Require Multi-Factor Authentication on active assignment' is off, Graph rule Enablement_Admin_Assignment). A hijacked administrator session can grant active access without authenticating again.
+**Fails when:** Active assignments of a Control or Management Plane role can be created without multifactor authentication at assignment time ('Require Multi-Factor Authentication on active assignment' is off, Graph rule Enablement_Admin_Assignment). A hijacked administrator session can grant active access without authenticating again.
 
 EntraOps evaluates this rule as EO.3008 (PimRequestFlow.noMfaActiveAssign). The EntraOps reports show the same result as the finding 'Privileged role can be assigned as active without MFA'.
 

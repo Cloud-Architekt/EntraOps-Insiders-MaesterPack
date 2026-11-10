@@ -9,7 +9,9 @@ function Test-EntraOpsObjectWorkAccountMissing {
     [MaesterTest(
         Id                 = 'MP.EOPS.4009',
         Title              = 'Control and Management Plane users are linked to a work account.',
-        Severity           = 'Info',
+        Severity           = 'Low',
+        UserImpact         = 'Low',
+        ImplementationCost = 'Low',
         Product            = 'entra',
         Feature            = 'roles',
         Area               = 'privileged-access',

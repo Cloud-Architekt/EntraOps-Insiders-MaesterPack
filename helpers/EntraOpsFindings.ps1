@@ -368,7 +368,8 @@ function ConvertTo-EntraOpsPackText {
         [string] $Value
     )
 
-    $Value -replace '[\r\n]+', ' ' -replace '\|', '\|' -replace '<', '&lt;' -replace '>', '&gt;'
+    # An escaped @ keeps a user principal name from becoming a mail link.
+    $Value -replace '[\r\n]+', ' ' -replace '\|', '\|' -replace '<', '&lt;' -replace '>', '&gt;' -replace '@', '\@'
 }
 
 function ConvertTo-EntraOpsPackName {
@@ -418,6 +419,20 @@ function Get-EntraOpsPackResultDetail {
     if ($objectType -eq 'accessPackageAssignmentPolicy' -and $displayName -match '^(.+) / ([^/]+)$') {
         $message = $message.Replace("the policy '$($Matches[2])' of the access package '$($Matches[1])'", 'the policy')
     }
+    if ($objectType -eq 'accessPackageAssignmentPolicy' -and $displayName -match '^(.+) / ([^/]+)$') {
+        $policySubject = "The policy '$($Matches[2])' of the access package '$($Matches[1])' "
+        if ($message.StartsWith($policySubject, [System.StringComparison]::Ordinal) -and $message.Length -gt $policySubject.Length + 2) {
+            $rest = $message.Substring($policySubject.Length)
+            return $rest.Substring(0, 1).ToUpperInvariant() + $rest.Substring(1)
+        }
+    }
+    $ofObject = " of '$displayName' has no tier classification."
+    if ($message -cmatch "^'[^']+' \([^()]+\) of '" -and $message.EndsWith($ofObject, [System.StringComparison]::Ordinal)) {
+        return $message.Substring(0, $message.Length - $ofObject.Length) + ' has no tier classification.'
+    }
+    if ($message -cmatch "^(Control Plane|Management Plane|Workload Plane|User Access) workload identity '$([regex]::Escape($displayName))' (.{3,})$" -and $Matches[1] -ne $tier) {
+        return "With $($Matches[1]) access, $($Matches[2])"
+    }
     $subjects = @(
         if ($tierKey -eq 'Unclassified') { 'Unclassified object (counted as User Access) '; 'Unclassified object ' }
         if ($tier) { "$tier object "; "$tier workload identity "; "The $tier role " }
@@ -439,7 +454,7 @@ function Get-EntraOpsPackResultDetail {
         $rest = $rest.TrimStart()
         if ($subject -and $rest -cmatch '^of\b') { return "$($subject.Trim()) $rest" }
         if ($rest.Length -lt 3 -or $rest -cmatch '^(of|and|or|to|in)\b' -or $rest -notmatch '^[\p{L}(]') { return $message }
-        $rest = $rest -creplace '^(with [\w ]+? role assignments) (?=\p{Ll})', '$1: '
+        $rest = $rest -creplace '^(with [\w ]+? role assignments) (?=\p{Ll})', '$1, '
         $rest = $rest -creplace '^\(([^()]+)\)\s+(?=\S)', '$1: '
         return $rest.Substring(0, 1).ToUpperInvariant() + $rest.Substring(1)
     }
@@ -500,7 +515,7 @@ function ConvertTo-EntraOpsPackFindingText {
     $text = for ($index = 0; $index -lt $Split.Parts.Count; $index++) {
         # The text between the names can hold a part of a name with an apostrophe: no link, code or emphasis from it either.
         $part = $Split.Parts[$index]
-        (ConvertTo-EntraOpsPackText ($part -replace '([\\`*\[\]])', '\$1')) -replace $guid, '`$0`' -creplace '\b(Control Plane|Management Plane|Workload Plane|User Access)\b', '**$1**'
+        (ConvertTo-EntraOpsPackText ($part -replace '([\\`*\[\]])', '\$1')) -replace $guid, '`$0`' -creplace '(?<![/-] ?)\b(Control Plane|Management Plane|Workload Plane|User Access)\b(?! ?[/-])', '**$1**'
         if ($index -lt $Split.Names.Count) {
             $name = $Split.Names[$index]
             if ($index -eq $Position) { $Value }
@@ -929,8 +944,8 @@ function ConvertTo-EntraOpsPackResultTable {
     not name and the links to the EntraOps reports.
 
     When each object has one finding, objects with the same finding (MinShared or more) share a section: the finding
-    once, then a table of these objects with their evidence and links ("142 PIM role settings: Can be activated
-    without approval."). The other objects follow in one table with their finding.
+    once, then a table of these objects with their evidence and links ("Can be activated without approval. — 142 PIM role
+    settings:"). The other objects follow in one table with their finding.
 
     When an object has several findings, the table lists them by object: the object once (with the number of its
     findings and the links that all of them share), its findings in the rows below it. Findings of an object that
@@ -973,6 +988,8 @@ function ConvertTo-EntraOpsPackResultTable {
     $findingsView = if ($ReportBase) { "$($ReportBase)PrivilegedAssets/index.html?view=findings#rule=$([uri]::EscapeDataString($Rule.RuleId))" }
     $objects = @(Get-EntraOpsPackResultObject -Rule $Rule -Results $Results -ReportBase $ReportBase -PortalUrl $PortalUrl)
     if ($ByObject) { $objects = @($objects | Sort-Object Count -Descending -Stable) }
+    # Classified objects first: their findings are certain, those of unclassified objects depend on their tier.
+    else { $objects = @($objects | Sort-Object { $_.Object.TierKey -eq 'Unclassified' } -Stable) }
     # Names shared by objects with different IDs (for example service principals of the same application name).
     $ambiguous = @($objects | ForEach-Object { $_.Object } | Group-Object Name | Where-Object { $_.Count -gt 1 } | ForEach-Object Name)
     foreach ($entry in $objects) { $entry | Add-Member -NotePropertyName Cell -NotePropertyValue (ConvertTo-EntraOpsPackObjectText -Object $entry.Object -WithId:($entry.Object.Name -in $ambiguous) -WithType -MaxNameLength 40) }
@@ -1009,7 +1026,8 @@ function ConvertTo-EntraOpsPackResultTable {
             $items = $byText[$text]
             $withDetails = @($items | Where-Object { $_.Line.Evidence -or $_.Line.LinkText }).Count -gt 0
             if ($body.Count) { $body.Add('') }
-            $body.Add("**$(Get-EntraOpsPackTypePlural @($items | ForEach-Object { $_.Entry.Object })):** $text")
+            # The finding first, then the objects it applies to (the table below).
+            $body.Add("$text — **$(Get-EntraOpsPackTypePlural @($items | ForEach-Object { $_.Entry.Object })):**")
             $body.Add('')
             $body.Add($(if ($withDetails) { '| Object | Details |' } else { '| Object |' }))
             $body.Add($(if ($withDetails) { '| --- | --- |' } else { '| --- |' }))
@@ -1058,7 +1076,7 @@ function ConvertTo-EntraOpsPackResultTable {
             $hidden = $entry.Count - (@($shownLines | ForEach-Object { $_.Findings.Count }) | Measure-Object -Sum).Sum
             if ($hidden -gt 0 -and $shownRows -lt $MaxRows) {
                 # The other findings of the object, in the Findings view.
-                $body.Add("|  | ... and $hidden more finding(s) of this object.$(if ($findingsView) { ' ' + (ConvertTo-EntraOpsPackLinkText @([pscustomobject]@{ Label = 'Findings view'; Href = $findingsView })) }) |")
+                $body.Add("|  | ... and $(Get-EntraOpsPackCountText $hidden 'more finding') of this object.$(if ($findingsView) { ' ' + (ConvertTo-EntraOpsPackLinkText @([pscustomobject]@{ Label = 'Findings view'; Href = $findingsView })) }) |")
                 $shownRows++
                 $shownResults += $hidden
             }
@@ -1074,7 +1092,7 @@ function ConvertTo-EntraOpsPackResultTable {
     $remainingResults = @($Results).Count - $shownResults
     if ($remainingResults -gt 0) {
         $output.Add('')
-        $what = if ($ByObject) { "$remainingObjects more object(s)" } else { "$remainingResults more finding(s)$(if ($remainingObjects -gt 0) { " on $remainingObjects more object(s)" })" }
+        $what = if ($ByObject) { Get-EntraOpsPackCountText $remainingObjects 'more object' } else { "$(Get-EntraOpsPackCountText $remainingResults 'more finding')$(if ($remainingObjects -gt 0) { " on $(Get-EntraOpsPackCountText $remainingObjects 'more object')" })" }
         $output.Add("... and $what. $(if ($ReportBase) { "The [EntraOps Findings view]($findingsView) lists all of them." } else { 'The EntraOps reports list all of them.' })")
     }
     $output.ToArray()
@@ -1115,7 +1133,7 @@ function ConvertTo-EntraOpsPackAcceptedTable {
         $text = ConvertTo-EntraOpsPackFindingText -Split (Split-EntraOpsPackMessage (Get-EntraOpsPackResultDetail $result))
         "| $(ConvertTo-EntraOpsPackObjectText -Object $object -WithType -MaxNameLength 40) | $(if ($text) { "$text " })$(if ("$($exception.State)" -eq 'Dismissed') { '✔️' } else { '⚖️' }) $(ConvertTo-EntraOpsPackMarkdownCell ($parts -join ' · ')) |"
     }
-    if ($accepted.Count -gt $MaxRows) { ''; "... and $($accepted.Count - $MaxRows) more accepted finding(s)." }
+    if ($accepted.Count -gt $MaxRows) { ''; "... and $(Get-EntraOpsPackCountText ($accepted.Count - $MaxRows) 'more accepted finding')." }
 }
 
 function Get-EntraOpsPackRuleSettingText {
@@ -1137,6 +1155,26 @@ function Get-EntraOpsPackRuleSettingText {
         })
     if (-not $settings.Count) { return $null }
     '🔧 ' + (ConvertTo-EntraOpsPackMarkdownCell "EntraOps settings of this check (Findings in EntraOpsConfig.json): $($settings -join '; ').")
+}
+
+function Get-EntraOpsPackCountText {
+    <#
+    .SYNOPSIS
+    A number with its noun in the singular or plural: "1 finding", "3 findings", "2 policies" (-Plural).
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [int] $Count,
+
+        [Parameter(Mandatory, Position = 1)]
+        [string] $Noun,
+
+        [string] $Plural
+    )
+
+    "$Count $(if ($Count -eq 1) { $Noun } elseif ($Plural) { $Plural } else { "$($Noun)s" })"
 }
 
 function Join-EntraOpsPackName {
@@ -1187,9 +1225,9 @@ function Get-EntraOpsPackExceptionText {
                 "$name ($($expiresOn.ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture)))"
             }
         })
-    if ($expired.Count) { '⌛ ' + (ConvertTo-EntraOpsPackMarkdownCell "$($expired.Count) finding exception(s) expired, so their findings count again: $(Join-EntraOpsPackName @($expired | ForEach-Object { if ($_.DisplayName) { [string]$_.DisplayName } elseif ($_.ObjectId) { [string]$_.ObjectId } else { [string]$_.InstanceId } })). Renew or remove them in the EntraOps Finding Exceptions File.") }
-    if ($stale.Count) { '🧹 ' + (ConvertTo-EntraOpsPackMarkdownCell "$($stale.Count) finding exception(s) match no finding anymore: $(Join-EntraOpsPackName @($stale | ForEach-Object { if ($_.DisplayName) { [string]$_.DisplayName } elseif ($_.ObjectId) { [string]$_.ObjectId } else { [string]$_.InstanceId } })). Remove them from the EntraOps Finding Exceptions File.") }
-    if ($soon.Count) { '⏰ ' + (ConvertTo-EntraOpsPackMarkdownCell "$($soon.Count) risk acceptance(s) expire within $SoonDays days: $(Join-EntraOpsPackName $soon).") }
+    if ($expired.Count) { '⌛ ' + (ConvertTo-EntraOpsPackMarkdownCell "$(Get-EntraOpsPackCountText $expired.Count 'finding exception') expired, so their findings count again: $(Join-EntraOpsPackName @($expired | ForEach-Object { if ($_.DisplayName) { [string]$_.DisplayName } elseif ($_.ObjectId) { [string]$_.ObjectId } else { [string]$_.InstanceId } })). Renew or remove them in the EntraOps Finding Exceptions File.") }
+    if ($stale.Count) { '🧹 ' + (ConvertTo-EntraOpsPackMarkdownCell "$(Get-EntraOpsPackCountText $stale.Count 'finding exception') $(if ($stale.Count -eq 1) { 'matches' } else { 'match' }) no finding anymore: $(Join-EntraOpsPackName @($stale | ForEach-Object { if ($_.DisplayName) { [string]$_.DisplayName } elseif ($_.ObjectId) { [string]$_.ObjectId } else { [string]$_.InstanceId } })). Remove them from the EntraOps Finding Exceptions File.") }
+    if ($soon.Count) { '⏰ ' + (ConvertTo-EntraOpsPackMarkdownCell "$(Get-EntraOpsPackCountText $soon.Count 'risk acceptance') $(if ($soon.Count -eq 1) { 'expires' } else { 'expire' }) within $SoonDays days: $(Join-EntraOpsPackName $soon).") }
 }
 
 function Add-EntraOpsPackAffectedObject {
@@ -1295,7 +1333,7 @@ function ConvertTo-EntraOpsPackMarkdownCell {
 
     # Names, reasons and references come from the tenant and the exceptions file: a backslash, bracket or backtick in
     # them must not start a link or code ("Helpdesk\](https://...) [x" would otherwise replace the link of an object).
-    ("$Value" -replace '([\\`\[\]])', '\$1' -replace '[\r\n]+', ' ' -replace '\|', '\|' -replace '<', '&lt;' -replace '>', '&gt;').Trim()
+    ("$Value" -replace '([\\`\[\]])', '\$1' -replace '[\r\n]+', ' ' -replace '\|', '\|' -replace '<', '&lt;' -replace '>', '&gt;' -replace '@', '\@').Trim()
 }
 
 function Test-EntraOpsPackFinding {
@@ -1411,13 +1449,13 @@ function Test-EntraOpsPackFinding {
             $accepted = Get-EntraOpsPackAcceptedFinding -Rule $rule
             if ($accepted.RiskAcceptedCount -gt 0) {
                 # The control is not met, but its risk is accepted: neither a pass nor a failure.
-                $reason = "Risk accepted in EntraOps: $($accepted.RiskAcceptedCount) affected instance(s) of $($rule.EvaluatedCount) evaluated, no open one ($($accepted.RiskAccepted -join '; '))$(if ($accepted.DismissedCount) { "; $($accepted.DismissedCount) more dismissed as false positives" }). Renew or remove the exceptions in the EntraOps Finding Exceptions File."
+                $reason = "Risk accepted in EntraOps: $(Get-EntraOpsPackCountText $accepted.RiskAcceptedCount 'affected instance') of $($rule.EvaluatedCount) evaluated, no open one ($($accepted.RiskAccepted -join '; '))$(if ($accepted.DismissedCount) { "; $($accepted.DismissedCount) more dismissed as false positives" }). Renew or remove the exceptions in the EntraOps Finding Exceptions File."
                 $list = @(ConvertTo-EntraOpsPackAcceptedTable -Rule $rule -PortalUrl $portalUrl)
                 Add-MtTestResultDetail -SkippedBecause Custom -SkippedCustomReason $reason -Result "Skipped. $reason$contextText$(if ($list.Count) { "`n`n" + ($list -join "`n") })`n`n$footer"
                 return
             }
-            $dismissed = if ($accepted.DismissedCount) { " $($accepted.DismissedCount) affected instance(s) are dismissed as false positives in the EntraOps finding exceptions." } else { '' }
-            Add-MtTestResultDetail -Result "✅ Well done. EntraOps evaluated $($rule.EvaluatedCount) instance(s) and none is affected.$dismissed$(if ($note) { "`n`n📝 $note" })$contextText`n`n$footer"
+            $dismissed = if ($accepted.DismissedCount) { " $(Get-EntraOpsPackCountText $accepted.DismissedCount 'affected instance') $(if ($accepted.DismissedCount -eq 1) { 'is' } else { 'are' }) dismissed as false positives in the EntraOps finding exceptions." } else { '' }
+            Add-MtTestResultDetail -Result "✅ Well done. EntraOps evaluated $(Get-EntraOpsPackCountText ([int]$rule.EvaluatedCount) 'instance') and none is affected.$dismissed$(if ($note) { "`n`n📝 $note" })$contextText`n`n$footer"
             return $true
         }
         'Failed' {
@@ -1429,13 +1467,20 @@ function Test-EntraOpsPackFinding {
             $investigate = $null -ne $rule.PSObject.Properties['Investigate'] -and $rule.Investigate -eq $true
             # The summary: one paragraph per line, each with its icon.
             $summary = [System.Collections.Generic.List[string]]::new()
-            $summary.Add("$(if ($investigate) { '🕵️' } else { '❌' }) EntraOps found $($rule.FailedCount) $(if ($investigate) { 'instance(s) to investigate' } else { 'affected instance(s)' }) of $($rule.EvaluatedCount) evaluated$(if ($objectCount -gt 0 -and $objectCount -lt $results.Count) { ", on $objectCount object(s)" }).")
+            $summary.Add("$(if ($investigate) { '🕵️' } else { '❌' }) EntraOps found $(if ($investigate) { "$(Get-EntraOpsPackCountText ([int]$rule.FailedCount) 'instance') to investigate" } else { Get-EntraOpsPackCountText ([int]$rule.FailedCount) 'affected instance' }) of $($rule.EvaluatedCount) evaluated$(if ($objectCount -gt 0 -and $objectCount -lt $results.Count) { ", on $(Get-EntraOpsPackCountText $objectCount 'object')" }).")
+            # Findings on unclassified objects count (for example access to the Control Plane), but their tier is
+            # unknown: classifying these objects comes first. Not for the rule that reports the classification itself.
+            $onUnclassified = @($results | Where-Object { "$($_.Instance.AdminTierLevelName)" -eq 'Unclassified' })
+            if ($onUnclassified.Count -and $RuleId -ne 'EO.2001') {
+                $unclassifiedObjects = @($onUnclassified | ForEach-Object { if ($_.Instance.ObjectId) { [string]$_.Instance.ObjectId } else { [string]$_.Instance.Id } } | Select-Object -Unique).Count
+                $summary.Add("❔ $(if ($onUnclassified.Count -eq $results.Count) { 'All of them are' } else { "$($onUnclassified.Count) of them are" }) on $(Get-EntraOpsPackCountText $unclassifiedObjects 'unclassified object'), listed last: classify these objects first (MP.EOPS.2001), as their tier decides what applies to them.")
+            }
             if ($investigate) { $summary.Add('💡 This check asks for a review: confirm that each of them is intended, and change or accept (finding exception) the others.') }
             $accepted = Get-EntraOpsPackAcceptedFinding -Rule $rule
-            if ($accepted.RiskAcceptedCount -gt 0) { $summary.Add("⚖️ $($accepted.RiskAcceptedCount) more instance(s) are risk accepted in the EntraOps finding exceptions and listed apart: $($accepted.RiskAccepted -join '; ').") }
-            if ($accepted.DismissedCount -gt 0) { $summary.Add("✔️ $($accepted.DismissedCount) more instance(s) are dismissed as false positives in the EntraOps finding exceptions and listed apart.") }
+            if ($accepted.RiskAcceptedCount -gt 0) { $summary.Add("⚖️ $(Get-EntraOpsPackCountText $accepted.RiskAcceptedCount 'more instance') $(if ($accepted.RiskAcceptedCount -eq 1) { 'is' } else { 'are' }) risk accepted in the EntraOps finding exceptions and listed apart: $($accepted.RiskAccepted -join '; ').") }
+            if ($accepted.DismissedCount -gt 0) { $summary.Add("✔️ $(Get-EntraOpsPackCountText $accepted.DismissedCount 'more instance') $(if ($accepted.DismissedCount -eq 1) { 'is' } else { 'are' }) dismissed as false positives in the EntraOps finding exceptions and listed apart.") }
             $unclassified = @($rule.UnclassifiedResults | Where-Object { $_ })
-            if ([int]$rule.UnclassifiedCount -gt 0) { $summary.Add("❔ $($rule.UnclassifiedCount) more instance(s) of unclassified objects are not counted$(if ($unclassified.Count) { ' and listed apart' }): classify these objects (EO.2001) to evaluate them.") }
+            if ([int]$rule.UnclassifiedCount -gt 0) { $summary.Add("❔ $(Get-EntraOpsPackCountText ([int]$rule.UnclassifiedCount) 'more instance') of unclassified objects $(if ([int]$rule.UnclassifiedCount -eq 1) { 'is' } else { 'are' }) not counted$(if ($unclassified.Count) { ' and listed apart' }): classify these objects (EO.2001) to evaluate them.") }
             if ($note) { $summary.Add("📝 $note") }
             foreach ($line in $context) { $summary.Add($line) }
             $lines.Add($summary -join "`n`n")

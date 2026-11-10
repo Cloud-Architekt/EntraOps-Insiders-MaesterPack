@@ -1,4 +1,4 @@
-A Management Plane object is synchronized from Active Directory. Administrators of Active Directory and of the synchronization server can reset its password or change it, and so take over its Management Plane access.
+**Fails when:** A Management Plane object is synchronized from Active Directory. Administrators of Active Directory and of the synchronization server can reset its password or change it, and so take over its Management Plane access.
 
 EntraOps evaluates this rule as EO.4006 (PrivilegedEAM.hybridManagementPlane). The EntraOps reports show the same result as the finding 'Synchronized Management Plane identity'.
 

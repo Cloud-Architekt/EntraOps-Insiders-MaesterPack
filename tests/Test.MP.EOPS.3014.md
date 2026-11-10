@@ -1,4 +1,4 @@
-The PIM setting of a Control or Management Plane role does not notify administrators when the role is activated, or assigned as eligible or active: the default recipients are turned off and there are no additional recipients. Misuse of the role then goes unnoticed until someone reviews the audit log. Roles whose snapshot has no notification settings are not evaluated.
+**Fails when:** The PIM setting of a Control or Management Plane role does not notify administrators when the role is activated, or assigned as eligible or active: the default recipients are turned off and there are no additional recipients. Misuse of the role then goes unnoticed until someone reviews the audit log. Roles whose snapshot has no notification settings are not evaluated.
 
 EntraOps evaluates this rule as EO.3014 (TenantGovernance.privilegedRoleAlert). The EntraOps reports show the same result as the finding 'Privileged role without administrator alerts'.
 

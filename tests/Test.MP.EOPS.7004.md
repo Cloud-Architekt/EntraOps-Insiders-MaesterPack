@@ -1,4 +1,4 @@
-Control Plane access is granted through a group that is a member of another group. Nesting hides who holds the access, and the owners and administrators of every group in the chain can change it. The export records the chain of groups of PIM for Groups memberships (eligible nested groups); the members of other groups are read transitively, so their nesting is not reported.
+**Fails when:** Control Plane access is granted through a group that is a member of another group. Nesting hides who holds the access, and the owners and administrators of every group in the chain can change it. The export records the chain of groups of PIM for Groups memberships (eligible nested groups); the members of other groups are read transitively, so their nesting is not reported.
 
 EntraOps evaluates this rule as EO.7004 (PrivilegedEAM.nestedControlPlaneGroup). The EntraOps reports show the same result as the finding 'Control Plane access through nested groups'.
 

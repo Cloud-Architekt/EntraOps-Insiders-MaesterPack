@@ -1,4 +1,4 @@
-A guest user holds Control or Management Plane access. The guest's home organization controls the authentication, credentials and lifecycle of the account, and controls of this tenant such as device compliance apply only when the cross-tenant access settings trust the home tenant. External users with a member account (userType Member) are not reported.
+**Fails when:** A guest user holds Control or Management Plane access. The guest's home organization controls the authentication, credentials and lifecycle of the account, and controls of this tenant such as device compliance apply only when the cross-tenant access settings trust the home tenant. External users with a member account (userType Member) are not reported.
 
 EntraOps evaluates this rule as EO.4002 (PrivilegedEAM.guestPrivileged). The EntraOps reports show the same result as the finding 'Guest user with privileged access'.
 

@@ -1,4 +1,4 @@
-This object owns another object that needs a more privileged tier (by its own tier or its role assignments). Through the ownership it can take over the owned object and its privileges, so it effectively belongs to the more privileged tier. The owned object is reported by EO.1004. The required tiers count role assignments without delegated permissions.
+**Fails when:** This object owns another object that needs a more privileged tier (by its own tier or its role assignments). Through the ownership it can take over the owned object and its privileges, so it effectively belongs to the more privileged tier. The owned object is reported by EO.1004. The required tiers count role assignments without delegated permissions.
 
 EntraOps evaluates this rule as EO.1005 (PrivilegedAssets.ownsHigherTier). The EntraOps reports show the same result as the finding 'Owns higher-tier object'.
 

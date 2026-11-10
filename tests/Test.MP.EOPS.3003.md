@@ -1,4 +1,4 @@
-A Control or Management Plane Azure role is assigned permanently at the root scope (/) or the tenant root management group, so it applies to every management group, subscription and resource. User Access roles such as Reader, the members of a group with the assignment, and Microsoft first-party service principals such as MS-PIM (which manages the PIM assignments of Azure resources) are not reported. PIM activations and time-bound assignments are not reported.
+**Fails when:** A Control or Management Plane Azure role is assigned permanently at the root scope (/) or the tenant root management group, so it applies to every management group, subscription and resource. User Access roles such as Reader, the members of a group with the assignment, and Microsoft first-party service principals such as MS-PIM (which manages the PIM assignments of Azure resources) are not reported. PIM activations and time-bound assignments are not reported.
 
 EntraOps evaluates this rule as EO.3003 (PrivilegedEAM.azureRootScopeAssignment). The EntraOps reports show the same result as the finding 'Permanent Azure role assignment at root scope'.
 

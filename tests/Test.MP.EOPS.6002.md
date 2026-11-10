@@ -1,4 +1,4 @@
-An assignment policy grants a Control or Management Plane resource and accepts requests from all directory members, all users including guests, all external users, or the users of all (configured or existing) connected organizations. Every account in that scope can request privileged access, so approval is the only barrier. Policies that do not accept requests are not reported.
+**Fails when:** An assignment policy grants a Control or Management Plane resource and accepts requests from all directory members, all users including guests, all external users, or the users of all (configured or existing) connected organizations. Every account in that scope can request privileged access, so approval is the only barrier. Policies that do not accept requests are not reported.
 
 EntraOps evaluates this rule as EO.6002 (AccessPackageFlow.broadRequestor). The EntraOps reports show the same result as the finding 'Broad requestor scope for privileged access package resource'.
 

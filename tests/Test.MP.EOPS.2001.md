@@ -1,4 +1,4 @@
-The privileged object has no object tier: no custom security attribute, no entry in the Object Classification File and no Alternate Tier Level Attribute. The finding rules treat it like Tier 2 (User Access), so tier-based protection such as Conditional Access by tier, restricted management or PAW is not applied, and the tier analysis treats its access as a breach. Service principals of Microsoft first-party applications are not reported: Microsoft operates them.
+**Fails when:** The privileged object has no object tier: no custom security attribute, no entry in the Object Classification File and no Alternate Tier Level Attribute. The finding rules treat it like Tier 2 (User Access), so tier-based protection such as Conditional Access by tier, restricted management or PAW is not applied, and the tier analysis treats its access as a breach. Service principals of Microsoft first-party applications are not reported: Microsoft operates them.
 
 EntraOps evaluates this rule as EO.2001 (PrivilegedAssets.unclassified). The EntraOps reports show the same result as the finding 'Unclassified object'.
 

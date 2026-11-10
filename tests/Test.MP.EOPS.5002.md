@@ -1,4 +1,4 @@
-An agent identity, agent identity blueprint principal or agent user holds Control or Management Plane access. AI agents act autonomously on the content they process, so privileged access exposes the tenant to prompt injection and misuse of the agent. Delegated permissions do not count as access of the object: the application acts within the rights of the signed-in user (EO.5005 reports delegated Control Plane permissions).
+**Fails when:** An agent identity, agent identity blueprint principal or agent user holds Control or Management Plane access. AI agents act autonomously on the content they process, so privileged access exposes the tenant to prompt injection and misuse of the agent. Delegated permissions do not count as access of the object: the application acts within the rights of the signed-in user (EO.5005 reports delegated Control Plane permissions).
 
 EntraOps evaluates this rule as EO.5002 (PrivilegedEAM.agentPrivileged). The EntraOps reports show the same result as the finding 'Agent identity with privileged access'.
 

@@ -1,4 +1,4 @@
-A member user that is, or holds role assignments of, Tier 0 or 1 (Control, Management or Workload Plane) is not linked to the regular work account of its owner (by default the custom security attribute associatedWorkAccount; without it, the Privileged EAM collection also uses the identity info of Microsoft Defender XDR when XDR hunting is enabled). Without the link, leaver processes and investigations cannot connect the privileged account to a person.
+**Fails when:** A member user that is, or holds role assignments of, Tier 0 or 1 (Control, Management or Workload Plane) is not linked to the regular work account of its owner (by default the custom security attribute associatedWorkAccount; without it, the Privileged EAM collection also uses the identity info of Microsoft Defender XDR when XDR hunting is enabled). Without the link, leaver processes and investigations cannot connect the privileged account to a person.
 
 EntraOps evaluates this rule as EO.4009 (PrivilegedAssets.workAccountMissing). The EntraOps reports show the same result as the finding 'No associated work account'.
 

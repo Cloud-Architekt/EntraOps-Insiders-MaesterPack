@@ -1,4 +1,4 @@
-The role assignment has no tier classification, so its privileges are missing in the tier analysis (tier breaches and the required tier of the object). Usually the classification does not know the role, permission or its actions, for example a new built-in role, a custom role or an API permission of a third-party application. The OpenID Connect sign-in scopes openid, profile, email and offline_access and user_impersonation are not reported: they grant no privileges of their own.
+**Fails when:** The role assignment has no tier classification, so its privileges are missing in the tier analysis (tier breaches and the required tier of the object). Usually the classification does not know the role, permission or its actions, for example a new built-in role, a custom role or an API permission of a third-party application. The OpenID Connect sign-in scopes openid, profile, email and offline_access and user_impersonation are not reported: they grant no privileges of their own.
 
 EntraOps evaluates this rule as EO.2002 (PrivilegedEAM.unclassifiedAssignment). The EntraOps reports show the same result as the finding 'Role assignment without tier classification'.
 

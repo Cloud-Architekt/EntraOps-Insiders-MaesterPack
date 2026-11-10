@@ -1,4 +1,4 @@
-Approvers are configured in the PIM setting, but 'Require approval to activate' is off, so the approvers have no effect. Approval was probably intended but is not enforced. Microsoft Graph keeps the approvers of the disabled approval rule, so this is common after approval was turned off.
+**Fails when:** Approvers are configured in the PIM setting, but 'Require approval to activate' is off, so the approvers have no effect. Approval was probably intended but is not enforced. Microsoft Graph keeps the approvers of the disabled approval rule, so this is common after approval was turned off.
 
 EntraOps evaluates this rule as EO.3010 (PimRequestFlow.approverNotEnforced). The EntraOps reports show the same result as the finding 'Approvers configured but approval not required'.
 

@@ -1,4 +1,4 @@
-An administrative unit with dynamic membership contains Control or Management Plane objects. Whoever can change the attributes of its membership rule (for example the user principal name) can add privileged objects to it or remove them, and so change which administrators manage them.
+**Fails when:** An administrative unit with dynamic membership contains Control or Management Plane objects. Whoever can change the attributes of its membership rule (for example the user principal name) can add privileged objects to it or remove them, and so change which administrators manage them.
 
 EntraOps evaluates this rule as EO.7005 (TenantGovernance.dynamicPrivilegedAdministrativeUnit). The EntraOps reports show the same result as the finding 'Dynamic administrative unit with privileged members'.
 

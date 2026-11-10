@@ -9,9 +9,10 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | Severity | Tests |
 |---|---|
 | Critical | 1 |
-| High | 22 |
+| High | 23 |
 | Medium | 26 |
-| Info | 8 |
+| Low | 1 |
+| Info | 6 |
 
 | Category | Tests |
 |---|---|
@@ -64,7 +65,7 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | [MP.EOPS.4006](tests/Test.MP.EOPS.4006.md) | No Management Plane object is synchronized from Active Directory. | Medium | Account protection |
 | [MP.EOPS.4007](tests/Test.MP.EOPS.4007.md) | Control and Management Plane users own no devices other than their privileged access workstation. | Medium | Account protection |
 | [MP.EOPS.4008](tests/Test.MP.EOPS.4008.md) | Control Plane users have an associated privileged access workstation. | Medium | Account protection |
-| [MP.EOPS.4009](tests/Test.MP.EOPS.4009.md) | Control and Management Plane users are linked to a work account. | Info | Account protection |
+| [MP.EOPS.4009](tests/Test.MP.EOPS.4009.md) | Control and Management Plane users are linked to a work account. | Low | Account protection |
 | [MP.EOPS.4010](tests/Test.MP.EOPS.4010.md) | Privileged objects from other tenants should be investigated. | Info | Account protection |
 | [MP.EOPS.5001](tests/Test.MP.EOPS.5001.md) | No service principal of another tenant has Control Plane access. | High | Workload and agent identities |
 | [MP.EOPS.5002](tests/Test.MP.EOPS.5002.md) | Agent identities have no Control or Management Plane access. | High | Workload and agent identities |
@@ -83,5 +84,5 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | [MP.EOPS.7004](tests/Test.MP.EOPS.7004.md) | Control Plane access is not granted through nested groups. | Medium | Ownership and delegation |
 | [MP.EOPS.7005](tests/Test.MP.EOPS.7005.md) | Administrative units with privileged members have no dynamic membership. | Medium | Ownership and delegation |
 | [MP.EOPS.8001](tests/Test.MP.EOPS.8001.md) | New Control Plane access since the previous snapshot should be investigated. | Info | Drift |
-| [MP.EOPS.8002](tests/Test.MP.EOPS.8002.md) | No new tier breach since the previous snapshot. | Info | Drift |
+| [MP.EOPS.8002](tests/Test.MP.EOPS.8002.md) | No new tier breach since the previous snapshot. | High | Drift |
 | [MP.EOPS.8003](tests/Test.MP.EOPS.8003.md) | New delegated Control or Management Plane permissions since the previous snapshot should be investigated. | Info | Drift |

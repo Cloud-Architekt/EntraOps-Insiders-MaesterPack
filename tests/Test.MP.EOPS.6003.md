@@ -1,4 +1,4 @@
-The access drift report of Microsoft Entra ID Governance (Access Guardian, preview) shows members or application role assignments of a Control or Management Plane group or application of an access package without a corresponding access package assignment: privileged access granted outside of governance, without approval, expiration or review.
+**Fails when:** The access drift report of Microsoft Entra ID Governance (Access Guardian, preview) shows members or application role assignments of a Control or Management Plane group or application of an access package without a corresponding access package assignment: privileged access granted outside of governance, without approval, expiration or review.
 
 EntraOps evaluates this rule as EO.6003 (AccessPackageFlow.unauthorizedAccess). The EntraOps reports show the same result as the finding 'Unauthorized access to privileged access package resource'.
 

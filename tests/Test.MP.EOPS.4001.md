@@ -1,4 +1,4 @@
-An object that is Control Plane, or holds Control Plane role assignments (unclassified objects included), is synchronized from Active Directory. Administrators of Active Directory and of the synchronization server can reset its password or change it, so the on-premises environment becomes part of the Control Plane.
+**Fails when:** An object that is Control Plane, or holds Control Plane role assignments (unclassified objects included), is synchronized from Active Directory. Administrators of Active Directory and of the synchronization server can reset its password or change it, so the on-premises environment becomes part of the Control Plane.
 
 EntraOps evaluates this rule as EO.4001 (PrivilegedAssets.hybridPrivileged). The EntraOps reports show the same result as the finding 'Synchronized Control Plane identity'.
 

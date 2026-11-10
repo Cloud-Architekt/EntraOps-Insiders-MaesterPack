@@ -1,4 +1,4 @@
-The identity parent of this agent (its agent identity blueprint, or the agent identity of an agent user) is classified at a lower tier. Whoever controls the parent, for example through its owners or credentials, can act as this agent, so its privileges are only as protected as the parent. A parent that is not a privileged object of the export counts as Tier 2. The required tier of the agent counts its role assignments without delegated permissions.
+**Fails when:** The identity parent of this agent (its agent identity blueprint, or the agent identity of an agent user) is classified at a lower tier. Whoever controls the parent, for example through its owners or credentials, can act as this agent, so its privileges are only as protected as the parent. A parent that is not a privileged object of the export counts as Tier 2. The required tier of the agent counts its role assignments without delegated permissions.
 
 EntraOps evaluates this rule as EO.1007 (PrivilegedAssets.parentLowerTier). The EntraOps reports show the same result as the finding 'Identity parent with lower tier'.
 

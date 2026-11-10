@@ -1,4 +1,4 @@
-Activation of a Control Plane role does not require a Conditional Access authentication context, so it cannot enforce controls beyond MFA: phishing-resistant authentication, a compliant privileged access workstation or a fresh sign-in. Whether the required context is selected is checked by EO.3011.
+**Fails when:** Activation of a Control Plane role does not require a Conditional Access authentication context, so it cannot enforce controls beyond MFA: phishing-resistant authentication, a compliant privileged access workstation or a fresh sign-in. Whether the required context is selected is checked by EO.3011.
 
 EntraOps evaluates this rule as EO.3009 (TenantGovernance.controlPlaneActivationAuthContext). The EntraOps reports show the same result as the finding 'Control Plane role activation without authentication context'.
 

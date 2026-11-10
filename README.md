@@ -207,7 +207,7 @@ A failed test shows the affected objects in tables of two columns, which fit the
 report. The layout follows the findings:
 
 - **One finding per object**: objects with the same finding share a section, the finding once and a table of
-  these objects with their evidence and links ("**142 PIM role settings:** Can be activated without approval.").
+  these objects with their evidence and links ("Can be activated without approval. — **142 PIM role settings:**").
   Other findings follow in one table, object and finding.
 - **Several findings per object** (`MP.EOPS.1001`, `5005` ...): the object once, with the number of its findings
   and the links that all of them share, and its findings in the rows below it. Findings that differ in one name
@@ -298,7 +298,10 @@ pack alone (for example of the guide) is released with the next EntraOps version
 3. Add the changes to the version's section of `CHANGELOG.md` (`## <Version>`) and merge the pull request.
    **Release** (`.github/workflows/release.yml`) checks the merge, tags the commit `v<Version>` and publishes the
    release with the changelog section as its notes. It refuses a pack generated from local EntraOps changes
-   (`LocalChanges` in `entraops-source.json`) and a pack whose links point to another repository.
+   (`LocalChanges` in `entraops-source.json`) and a pack whose links point to another repository. It also refuses a
+   release while a link of the tests does not open (the Docs page of a test, the EntraOps rule catalog, the
+   sections of the EntraOps documentation): release EntraOps and its documentation first, and make this
+   repository public.
 4. Maester users get the release after the install cooldown (72 hours); the Maester Packs index lists it
    automatically once the pack is published.
 

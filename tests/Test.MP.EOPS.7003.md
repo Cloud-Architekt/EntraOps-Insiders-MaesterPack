@@ -1,4 +1,4 @@
-An Azure assignment of User Access Administrator or Role Based Access Control Administrator has no condition. Its holder can assign any role, including Owner, to any principal at the scope, including itself, so it is effectively Owner of the scope. Members of a group with the assignment are not reported separately, nor are the service principals of Microsoft first-party applications (for example MS-PIM, which manages PIM for Azure resources).
+**Fails when:** An Azure assignment of User Access Administrator or Role Based Access Control Administrator has no condition. Its holder can assign any role, including Owner, to any principal at the scope, including itself, so it is effectively Owner of the scope. Members of a group with the assignment are not reported separately, nor are the service principals of Microsoft first-party applications (for example MS-PIM, which manages PIM for Azure resources).
 
 EntraOps evaluates this rule as EO.7003 (PrivilegedEAM.unconstrainedRoleAssignmentDelegation). The EntraOps reports show the same result as the finding 'Unconstrained Azure role assignment delegation'.
 
