@@ -36,6 +36,10 @@
         "Command": "Invoke-Maester -Pack EOPS -SkipBuiltIn -SkipGraphConnect"
       },
       {
+        "Text": "Only this pack, with the affected objects (users, groups, service principals, Conditional Access policies, access packages) and their EntraOps tier on Maester's Affected objects page: collected by default since Maester 3.0.0-rc73, with -IncludeAffectedObjects in earlier previews",
+        "Command": "Invoke-Maester -Pack EOPS -SkipBuiltIn -SkipGraphConnect -IncludeAffectedObjects"
+      },
+      {
         "Text": "Maester's tests and this pack",
         "Command": "Invoke-Maester -Pack EOPS"
       }
@@ -50,6 +54,11 @@
         "Name": "EntraOps.MaxFindingsAgeDays",
         "Default": "7",
         "Text": "Results older than this are skipped. 0 turns the check off."
+      },
+      {
+        "Name": "EntraOps.ReportsPath",
+        "Default": "The reports two folders above findings.json, when they are there",
+        "Text": "Where the results link to the EntraOps reports (Findings view, Tier Breach Analyzer, EAM Dashboard, Access Path Map, PIM Request Flow, Access Package Flow, Conditional Access Analysis, Configuration Analyzer): the URL where they are published (https://...) or their folder. A folder becomes a link that opens from a Maester report opened from disk. None turns the links off. The objects are linked to the Microsoft Entra admin center either way."
       },
       {
         "Name": "EntraOpsConfig.json: Findings",

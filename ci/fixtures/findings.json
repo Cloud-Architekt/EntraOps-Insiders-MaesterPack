@@ -333,6 +333,7 @@
       "Title": "Custom role with Control Plane permissions",
       "CheckTitle": "Custom roles with Control Plane permissions should be investigated.",
       "Severity": "Info",
+      "Investigate": true,
       "MaesterTestId": "MP.EOPS.2004",
       "Status": "Excluded",
       "Reason": null,
@@ -761,6 +762,7 @@
       "Title": "Outside home tenant",
       "CheckTitle": "Privileged objects from other tenants should be investigated.",
       "Severity": "Info",
+      "Investigate": true,
       "MaesterTestId": "MP.EOPS.4010",
       "Status": "Skipped",
       "Reason": null,
@@ -833,13 +835,39 @@
       "Title": "Workload identity with Control Plane access",
       "CheckTitle": "Workload identities with Control Plane access should be investigated.",
       "Severity": "Info",
+      "Investigate": true,
       "MaesterTestId": "MP.EOPS.5004",
-      "Status": "Passed",
+      "Status": "Failed",
       "Reason": null,
       "Parameters": {},
       "EvaluatedCount": 3,
-      "FailedCount": 0,
-      "Results": null
+      "FailedCount": 1,
+      "Results": [
+        {
+          "RuleId": "EO.5004",
+          "Key": "workloadControlPlane",
+          "Area": "PrivilegedEAM",
+          "Severity": "Info",
+          "Status": "Failed",
+          "Instance": {
+            "Id": "11111111-2222-3333-4444-555555555555",
+            "ObjectId": "11111111-2222-3333-4444-555555555555",
+            "ObjectType": "serviceprincipal",
+            "DisplayName": "Contoso Automation",
+            "AdminTierLevel": 0,
+            "AdminTierLevelName": "ControlPlane"
+          },
+          "Evidence": {
+            "RoleSystems": [
+              "EntraID"
+            ],
+            "OwnerIds": [],
+            "TierName": "ControlPlane",
+            "AccessTier": "ControlPlane"
+          },
+          "Message": "Service principal 'Contoso Automation' (Application) has Control Plane access."
+        }
+      ]
     },
     {
       "RuleId": "EO.5005",
@@ -849,6 +877,7 @@
       "Title": "Delegated Control Plane permission",
       "CheckTitle": "Delegated permissions classified as Control Plane should be investigated.",
       "Severity": "Info",
+      "Investigate": true,
       "MaesterTestId": "MP.EOPS.5005",
       "Status": "Skipped",
       "Reason": "No Configuration Analyzer data found.",
@@ -1057,6 +1086,7 @@
       "Title": "New Control Plane access",
       "CheckTitle": "New Control Plane access since the previous snapshot should be investigated.",
       "Severity": "Info",
+      "Investigate": true,
       "MaesterTestId": "MP.EOPS.8001",
       "Status": "Skipped",
       "Reason": null,

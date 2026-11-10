@@ -1,6 +1,6 @@
 A custom role of Entra ID or Azure grants permissions classified as Control Plane. Microsoft does not maintain custom roles: whoever can change the role definition can add Control Plane permissions to every assignment of the role at once. Only custom roles with assignments in the export are evaluated; for Azure roles, the tier can come from the scope of the assignment.
 
-EntraOps evaluates this rule as EO.2004 (PrivilegedEAM.customRoleControlPlane). The EntraOps reports show the same result as the finding 'Custom role with Control Plane permissions'.
+EntraOps evaluates this rule as EO.2004 (PrivilegedEAM.customRoleControlPlane). The EntraOps reports show the same result as the finding 'Custom role with Control Plane permissions'. The check asks for a review, not a fix: its findings are reported as Investigate, not as Failed.
 
 #### Remediation action
 

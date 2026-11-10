@@ -1,6 +1,6 @@
 A role assignment classified as Control Plane exists in the newest Privileged EAM snapshot of the Privilege History, but not in the previous snapshot. PIM activations are not counted: they are temporary instances of eligible assignments. A role that was reclassified to Control Plane shows as new access. Both snapshots need objects: the Privilege History keeps the objects of a limited number of snapshots. Delegated permissions are not counted here: EO.8003 reports new delegated Control and Management Plane permissions.
 
-EntraOps evaluates this rule as EO.8001 (PrivilegeHistory.newControlPlaneAccess). The EntraOps reports show the same result as the finding 'New Control Plane access'.
+EntraOps evaluates this rule as EO.8001 (PrivilegeHistory.newControlPlaneAccess). The EntraOps reports show the same result as the finding 'New Control Plane access'. The check asks for a review, not a fix: its findings are reported as Investigate, not as Failed.
 
 #### Remediation action
 

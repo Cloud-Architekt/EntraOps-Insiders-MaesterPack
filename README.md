@@ -35,6 +35,21 @@ module (`Test-MtPack`: Low risk).
 >   Install-MtPack ./EntraOps-Insiders-MaesterPack
 >   ```
 >
+> - `Install-MtPack` of a folder copies every file except `.git`, also those that `.gitignore` leaves out: Finder's
+>   `.DS_Store` files (binary files make the pack High risk) and the output of local Maester runs
+>   (`test-results`, with tenant data). Install a copy with the files of git only, or write the Maester output
+>   outside the clone:
+>
+>   ```powershell
+>   $copy = Join-Path ([System.IO.Path]::GetTempPath()) "EntraOps-MaesterPack-$(New-Guid)"
+>   git -C ./EntraOps-Insiders-MaesterPack ls-files --cached --others --exclude-standard | ForEach-Object {
+>       $target = Join-Path $copy $_
+>       New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
+>       Copy-Item -LiteralPath (Join-Path ./EntraOps-Insiders-MaesterPack $_) -Destination $target
+>   }
+>   Install-MtPack $copy
+>   ```
+>
 > - The links to the EntraOps rule catalog, the build script and the EntraOps documentation of findings work
 >   once EntraOps 1.2.0 is published.
 > - **Sync from EntraOps** generates the pack from the EntraOps Insiders repository with the Actions variable
@@ -136,15 +151,82 @@ For another location, for example the downloaded `EntraOps-Reporting` artifact, 
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `EntraOps.FindingsPath` | the working folder (see above) | `findings.json`, or the folder that holds it. A relative path is relative to the current folder. |
+| `EntraOps.FindingsPath` | the working folder (see above) | `findings.json`, or the folder that holds it. A relative path is relative to the current folder, `~` is the home folder. |
 | `EntraOps.MaxFindingsAgeDays` | `7` | Skip the tests when the results are older. `0` turns the check off. |
+| `EntraOps.ReportsPath` | the reports next to the results | The EntraOps reports that the results link to: the URL where they are published (`https://...`) or their folder. Without it, the reports two folders above `findings.json` (`Reports` of the working folder, or the `EntraOps-Reporting` artifact) when they are there. `None` turns the links off. |
 
 When Microsoft Graph is connected (by Maester or earlier in the PowerShell session), the pack skips results of
 another tenant. With `-SkipGraphConnect` it cannot compare the tenant: each result names the tenant and the date
 of the EntraOps results, so check them.
 
+When the pack cannot use the results, it skips all its tests with the reason and what to do, and
+`Invoke-Maester` shows it once as a warning:
+
+| Reason | What to do |
+| --- | --- |
+| No `findings.json` in the default folders, or at `EntraOps.FindingsPath` | Run `Invoke-EntraOpsAssessment` or `New-EntraOpsReportingData`, or correct `EntraOps.FindingsPath` (the reason names the full path it checked, and the current folder for a relative path) |
+| The file is empty or cut off (cannot be read) | Create it again; a download or copy may be incomplete |
+| The file is no EntraOps finding results file | Point `EntraOps.FindingsPath` to the `findings.json` in `Reports/Findings/data`, not another JSON file |
+| Unknown schema version | Update the pack |
+| Another tenant, or older than `EntraOps.MaxFindingsAgeDays` | Create current results of the tenant, or raise the setting |
+
+An `EntraOps.ReportsPath` folder without the EntraOps reports gives no report links; each result and the warning
+say so.
+
 In the Maester report, the pack's page lists all results, the tests not met and the tests not evaluated, and
 has this guide (**Set up**: Get started, Connect, Run).
+
+### Affected objects and links
+
+A failed test lists its affected objects with their type, EntraOps tier and the evidence of EntraOps, and links
+each of them:
+
+- to the **Microsoft Entra admin center**: users, groups, service principals, Conditional Access policies and the
+  access package of an assignment policy (of the cloud of the Microsoft Graph connection, Global without one);
+- to the **EntraOps reports** that show it, as the Findings view of the Privileged Assets report does: PIM Request
+  Flow and Configuration Analyzer for PIM role settings, Access Package Flow for access package policies,
+  Conditional Access Analysis for Conditional Access policies, Tier Breach Analyzer for the path of a tier breach,
+  EAM Dashboard for the role assignment and the object, and Access Path Map. Every result links its rule in the
+  Findings view (*Open EO.&lt;n&gt; in the EntraOps Findings view*), which lists all affected objects and maintains the
+  finding exceptions.
+
+The report links need the EntraOps reports: the pack finds them next to `findings.json`, or uses
+`EntraOps.ReportsPath`. A folder becomes a link to the local files, which works in a Maester report opened from
+disk; for a report that others open, publish the EntraOps reports and set their URL.
+
+The users, groups, service principals and Conditional Access policies of the failed tests (all of them, also beyond
+the rows of the tables) are listed on Maester's **Affected objects** page with their EntraOps tier, and access packages
+by their links. Maester 3.0.0-rc73 collects the affected objects by default (`-ExcludeAffectedObjects` turns this
+off); earlier 3.0 previews only with `-IncludeAffectedObjects`:
+
+```powershell
+Invoke-Maester -Pack EOPS -SkipBuiltIn -SkipGraphConnect -IncludeAffectedObjects
+```
+
+A failed test shows the affected objects in tables of two columns, which fit the result panel of the Maester
+report. The layout follows the findings:
+
+- **One finding per object**: objects with the same finding share a section, the finding once and a table of
+  these objects with their evidence and links ("**142 PIM role settings:** Can be activated without approval.").
+  Other findings follow in one table, object and finding.
+- **Several findings per object** (`MP.EOPS.1001`, `5005` ...): the object once, with the number of its findings
+  and the links that all of them share, and its findings in the rows below it. Findings that differ in one name
+  only are one row that names them all, each linked to its own report: "through the role Contributor (Azure) at
+  lab-landingzones, lab-platform and secplaybook-rg". An object shows at most five rows, then the number of its
+  other findings, so one object with many findings doesn't hide the others.
+
+The object column has the tier of the object (🔐 Control Plane, ☁️ Management Plane, ⚙️ Workload Plane, ℹ️ User
+Access, ❔ Unclassified, the same as the EntraOps-based tests of Maester) and its type (👤 user, 👥 group, 🤖 service
+principal, 🛡️ Conditional Access policy, ⏱️ PIM role setting, 📦 access package policy, 🏢 administrative unit, 📜 role
+definition) as icons, with a legend per test; a long name without spaces is shortened in the middle, with the full
+name as the tooltip of its link. A finding shows the message of EntraOps without the object and tier (the `Detail`
+of EntraOps, or the same for results of older versions), the evidence the message doesn't name (⏳ eligible or
+📌 permanent, scope, groups) and its links to the EntraOps reports (Tier breach, Assignment, PIM flow, Package flow,
+CA analysis, Configuration, EAM Dashboard, Access path; the tooltip names the report). The tiers and the role or
+permission of a finding are bold, the evidence is in italics and IDs are code, so a row reads at a glance.
+Each result also shows the settings EntraOps evaluated the check with (for example `MaxHours: 4`), the findings
+accepted by finding exceptions (state, expiry, reference, justification, who accepted them), and the exceptions to
+look after: expired ones, ones that match no finding anymore, and risk acceptances that expire within 30 days.
 
 ## Settings of the rules
 
@@ -168,7 +250,8 @@ findings again. See
 | Result | When |
 | --- | --- |
 | Passed | EntraOps evaluated the rule and found no affected object, or only findings dismissed as false positives (the result names their number). |
-| Failed | EntraOps found at least one affected object that is not dismissed or risk accepted. The result lists the first 50 and names the accepted findings apart. |
+| Failed | EntraOps found at least one affected object that is not dismissed or risk accepted. The result lists the first 50 with their links and names the accepted findings and the unclassified objects apart. |
+| Investigate | EntraOps found objects for a check that asks for a review, not a fix (`Investigate` in the EntraOps rule catalog): `MP.EOPS.2004`, `4010`, `5004`, `5005`, `8001` and `8003`, for example custom roles with Control Plane permissions. Confirm that each is intended; accept the intended ones with a finding exception. Results of EntraOps versions without the flag report them as Failed. |
 | Skipped | The findings of the rule are risk accepted in EntraOps and none is open (the reason lists the accepted risks). Or the rule is excluded or deprecated in EntraOps, had nothing to evaluate or its data was missing; the results are missing, belong to another tenant, are too old or have an unknown schema; or the results were written by an EntraOps version without the rule. |
 | Error | EntraOps could not evaluate the rule (status `Error` in `findings.json`). The result shows the reason; run the EntraOps evaluation again. |
 

@@ -190,17 +190,19 @@ function Invoke-EntraOpsPackCheck {
             foreach ($rule in $findings.Rules) {
                 # A passed rule with risk-accepted findings doesn't meet the control: the test is skipped.
                 $riskAccepted = @($rule.AcceptedResults | Where-Object { $_ -and $_.Exception.State -ne 'Dismissed' }).Count -gt 0
-                $statusByTest[$rule.MaesterTestId] = if ($rule.Status -eq 'Passed' -and $riskAccepted) { 'RiskAccepted' } else { $rule.Status }
+                # A failed rule that asks for a review of its results (Investigate) is reported as Investigate.
+                $statusByTest[$rule.MaesterTestId] = if ($rule.Status -eq 'Passed' -and $riskAccepted) { 'RiskAccepted' } elseif ($rule.Status -eq 'Failed' -and $rule.Investigate -eq $true) { 'Investigate' } else { $rule.Status }
             }
 
             $results = Invoke-EntraOpsPackTestRun -PackRoot $script:PackRoot
             $results.Count | Should -Be $script:TestCount
             foreach ($result in $results) {
-                $expected = switch ($statusByTest[$result.Id]) { 'Failed' { 'Failed' } 'Passed' { 'Passed' } 'Error' { 'Error' } default { 'Skipped' } }
+                $expected = switch ($statusByTest[$result.Id]) { 'Failed' { 'Failed' } 'Passed' { 'Passed' } 'Error' { 'Error' } 'Investigate' { 'Investigate' } default { 'Skipped' } }
                 $result.Result | Should -Be $expected -Because "$($result.Id) has the status '$($statusByTest[$result.Id])' in findings.json"
             }
             @($findings.Rules | Where-Object Status -eq 'Error').Count | Should -BeGreaterThan 0 -Because 'the fixture covers a rule whose evaluation failed'
             @($statusByTest.Values | Where-Object { $_ -eq 'RiskAccepted' }).Count | Should -BeGreaterThan 0 -Because 'the fixture covers a rule that passes only by accepted risks'
+            @($statusByTest.Values | Where-Object { $_ -eq 'Investigate' }).Count | Should -BeGreaterThan 0 -Because 'the fixture covers a rule that asks for a review of its results'
             @($results | Where-Object { -not $statusByTest.ContainsKey($_.Id) }).Count | Should -BeGreaterThan 0 -Because 'the fixture leaves out a rule, like results of an EntraOps version without it (MP.EOPS.8002)'
         }
 
