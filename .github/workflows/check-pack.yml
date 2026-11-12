@@ -12,8 +12,9 @@ permissions:
   contents: read
 
 env:
-  # The Maester and Pester versions of the checks. Dependabot doesn't update PowerShell modules: raise them here.
-  MAESTER_VERSION: 3.0.0-rc67
+  # The checks always use the newest Maester of the PowerShell Gallery, prereleases included, so the pack is checked
+  # against the version users install. The Pester version is pinned; Dependabot doesn't update PowerShell modules:
+  # raise it here.
   PESTER_VERSION: 6.2.0
 
 jobs:
@@ -30,8 +31,11 @@ jobs:
       - name: Install Maester and Pester
         shell: pwsh
         run: |
-          $prerelease = $env:MAESTER_VERSION -match '-'
-          Install-PSResource -Name Maester -Version $env:MAESTER_VERSION -Prerelease:$prerelease -Repository PSGallery -TrustRepository -Scope CurrentUser
+          Install-PSResource -Name Maester -Prerelease -Repository PSGallery -TrustRepository -Scope CurrentUser
+          $maester = Get-InstalledPSResource -Name Maester -Scope CurrentUser | Sort-Object Version -Descending | Select-Object -First 1
+          $maesterVersion = "$($maester.Version)$(if ($maester.Prerelease) { "-$($maester.Prerelease)" })"
+          Write-Host "Checking with Maester $maesterVersion"
+          "### Checked with Maester $maesterVersion" | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY
           Install-PSResource -Name Pester -Version $env:PESTER_VERSION -Repository PSGallery -TrustRepository -Scope CurrentUser
 
       - name: Check the pack

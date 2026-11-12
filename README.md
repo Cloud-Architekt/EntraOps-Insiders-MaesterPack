@@ -25,7 +25,7 @@ module (`Test-MtPack`: Low risk).
 > - EntraOps 1.2.0 is not on the PowerShell Gallery yet (it has 1.1.0, without findings). Import the module from
 >   a clone of the EntraOps Insiders repository: `Import-Module ./EntraOps/EntraOps.psd1`.
 > - Maester 3.0 is a prerelease: `Install-PSResource -Name Maester -Prerelease -Repository PSGallery -Scope CurrentUser`.
->   The checks of this repository use 3.0.0-rc67; the pack's menu in the report needs 3.0.0-rc56 or later.
+>   The checks of this repository use the newest Maester; the pack's menu in the report needs 3.0.0-rc56 or later.
 > - Install the pack with a GitHub token that can read this repository. Maester sends the token to
 >   `api.github.com` only and, for a private repository, sends nothing to Maester Packs (no install event).
 >   Without a token, GitHub answers that the repository does not exist. Before the first release, install `main`:
@@ -325,8 +325,9 @@ change the `Guid`, `Id` or `Code` of the manifest.
 ### Checks
 
 `.github/workflows/check-pack.yml` runs the checks on every pull request and, through **Release**, on every push
-to `main`, with the pinned Maester and Pester versions (`MAESTER_VERSION`, `PESTER_VERSION`; Dependabot updates
-only the actions). They need no tenant connection: `Test-MtPack` (the checks of `Install-MtPack` and
+to `main`, with the newest Maester of the PowerShell Gallery (prereleases included; the job summary names the
+version) and the pinned Pester version (`PESTER_VERSION`; Dependabot updates only the actions). They need no
+tenant connection: `Test-MtPack` (the checks of `Install-MtPack` and
 of the Maester Packs index; the pack must stay valid and Low risk), the metadata of every test, and every test
 against the synthetic results in `ci/fixtures/findings.json`. Locally:
 
