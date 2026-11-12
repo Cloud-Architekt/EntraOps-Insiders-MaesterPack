@@ -2,10 +2,11 @@
 
 ## Reporting a vulnerability
 
-Please report a vulnerability of the EntraOps Maester Pack privately through
-[GitHub security advisories](https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack/security/advisories/new),
-not in a public issue. Vulnerabilities of EntraOps itself (the evaluation of the checks) belong to the
-[EntraOps repository](https://github.com/Cloud-Architekt/EntraOps/security/policy).
+This repository is private, and GitHub offers private vulnerability reporting for public repositories only.
+Report a vulnerability of the EntraOps Maester Pack directly to the maintainers of this repository (the code
+owners in `.github/CODEOWNERS`), not in an issue: everyone with access to the repository reads its issues.
+The same applies to vulnerabilities of EntraOps itself (the evaluation of the checks); don't report them in a
+public repository either.
 
 ## What the pack can reach
 

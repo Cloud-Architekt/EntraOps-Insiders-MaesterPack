@@ -65,6 +65,9 @@ function Invoke-EntraOpsPackCheck {
 
                     [string] $SchemaVersion,
 
+                    # The date of the results as it is written, instead of AgeDays (for example a date that cannot be read).
+                    [string] $GeneratedAt,
+
                     [ValidateSet('EntraOpsRoot', 'CurrentFolder')]
                     [string] $DefaultLocation
                 )
@@ -74,6 +77,7 @@ function Invoke-EntraOpsPackCheck {
                 New-Item -ItemType Directory -Path $folder | Out-Null
                 $findings = Get-Content -LiteralPath (Join-Path $PackRoot 'ci/fixtures/findings.json') -Raw | ConvertFrom-Json
                 $findings.GeneratedAt = (Get-Date).ToUniversalTime().AddDays(-$AgeDays).ToString('o')
+                if ($PSBoundParameters.ContainsKey('GeneratedAt')) { $findings.GeneratedAt = $GeneratedAt }
                 if ($SchemaVersion) { $findings.SchemaVersion = $SchemaVersion }
                 $findings | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $folder 'findings.json')
                 $prepare = switch ($DefaultLocation) {
@@ -152,7 +156,8 @@ function Invoke-EntraOpsPackCheck {
             $script:Manifest.SecurityContact | Should -Be "$($script:Manifest.Homepage)/security/policy"
             (Get-Content -LiteralPath (Join-Path $script:PackRoot 'tests/suite.json') -Raw | ConvertFrom-Json).HelpUrlTemplate | Should -Be "$($script:Manifest.Homepage)/blob/main/tests/Test.{Id}.md"
             $files = Get-ChildItem -LiteralPath $script:PackRoot -File -Recurse -Force | Where-Object {
-                $_.FullName -notmatch '[\\/]\.git[\\/]' -and $_.Extension -in '.md', '.json', '.ps1', '.yml', '.yaml' -and $_.Name -ne 'Set-EntraOpsPackRepository.ps1'
+                # .claude holds the agent instructions to create or sync the public repository, which name both repositories.
+                $_.FullName -notmatch '[\\/]\.(git|claude)[\\/]' -and $_.Extension -in '.md', '.json', '.ps1', '.yml', '.yaml' -and $_.Name -ne 'Set-EntraOpsPackRepository.ps1'
             }
             foreach ($file in $files) {
                 foreach ($link in [regex]::Matches((Get-Content -LiteralPath $file.FullName -Raw), '(?<![\w-])Cloud-Architekt/[\w.-]*MaesterPack(?![\w-])')) {
@@ -225,15 +230,19 @@ function Invoke-EntraOpsPackCheck {
                 $reasonCode = if ($rule.PSObject.Properties['ReasonCode']) { [string]$rule.ReasonCode } else { $null }
                 # Results of an EntraOps version without reason codes: a skipped rule with nothing in its scope is still not applicable.
                 $case = if ($reasonCode) { $reasonCode } elseif ($rule.Status -eq 'Skipped' -and $rule.Reason -match 'in the scope of this rule \(0 evaluated\)') { 'NotApplicableWithoutReasonCode' }
+                # Other rules that the reason refers to are named by their Maester test (EO.2001 is MP.EOPS.2001); the rule itself keeps its ID.
+                $own = $rule.RuleId
+                $reason = [regex]::Replace([string]$rule.Reason, '\bEO\.(\d{4})\b', { param($m) if ($m.Value -eq $own) { $m.Value } else { "MP.EOPS.$($m.Groups[1].Value)" } })
                 switch ($case) {
                     { $_ -in 'NotApplicable', 'NotApplicableWithoutReasonCode' } { $result.ReasonCode | Should -Be 'NotApplicable' -Because "$($rule.RuleId) has nothing in its scope" }
-                    'Unclassified' { $result.ReasonDetail | Should -Match ('^' + [regex]::Escape("EntraOps did not report rule $($rule.RuleId): $($rule.Reason)")) }
-                    'MissingData' { $result.ReasonDetail | Should -Match ('^' + [regex]::Escape("EntraOps could not evaluate rule $($rule.RuleId): $($rule.Reason)")) }
-                    'Note' { $result.TestResult | Should -Match ([regex]::Escape("Note: $($rule.Reason)")) -Because "$($rule.RuleId) is $($rule.Status) with a note" }
+                    'Unclassified' { $result.ReasonDetail | Should -Match ('^' + [regex]::Escape("EntraOps did not report rule $($rule.RuleId): $reason")) }
+                    'MissingData' { $result.ReasonDetail | Should -Match ('^' + [regex]::Escape("EntraOps could not evaluate rule $($rule.RuleId): $reason")) }
+                    'Note' { $result.TestResult | Should -Match ([regex]::Escape("Note: $reason")) -Because "$($rule.RuleId) is $($rule.Status) with a note" }
                 }
+                if ($rule.Reason -match '\bEO\.2001\b' -and $rule.RuleId -ne 'EO.2001') { $covered['TestReference'] = $true; $result.ReasonDetail + $result.TestResult | Should -Not -Match '\bEO\.2001\b' -Because "$($rule.RuleId) refers to the test MP.EOPS.2001, not the rule EO.2001" }
                 if ($case) { $covered[$case] = $true }
             }
-            foreach ($case in 'NotApplicable', 'NotApplicableWithoutReasonCode', 'Unclassified', 'MissingData', 'Note') {
+            foreach ($case in 'NotApplicable', 'NotApplicableWithoutReasonCode', 'Unclassified', 'MissingData', 'Note', 'TestReference') {
                 $covered[$case] | Should -BeTrue -Because "the fixture covers the case $case"
             }
             foreach ($result in @($resultById.Values | Where-Object Result -in 'Passed', 'Failed')) {
@@ -250,6 +259,12 @@ function Invoke-EntraOpsPackCheck {
         It 'skips every test for results that are too old or of an unknown schema' {
             @(Invoke-EntraOpsPackTestRun -PackRoot $script:PackRoot -AgeDays 10).Result | Select-Object -Unique | Should -Be 'Skipped'
             @(Invoke-EntraOpsPackTestRun -PackRoot $script:PackRoot -SchemaVersion '2.0').Result | Select-Object -Unique | Should -Be 'Skipped'
+        }
+
+        It 'skips every test for results without a readable date, whose age cannot be checked' {
+            $results = @(Invoke-EntraOpsPackTestRun -PackRoot $script:PackRoot -GeneratedAt 'not a date')
+            $results.Result | Select-Object -Unique | Should -Be 'Skipped'
+            $results[0].ReasonDetail | Should -BeLike '*no readable date*'
         }
     }
 }

@@ -18,8 +18,9 @@ The test results, including up to 50 affected objects per test and the accepted 
 Maester report and its other outputs, which the operator stores or publishes. Treat Maester reports and
 `findings.json` as sensitive: don't commit them to public repositories or attach them to issues.
 
-When the pack is installed from a public GitHub repository, Maester itself sends an anonymous install event
-(the source and commit of the pack and a random installation ID). Nothing is sent for a private repository or a
-local folder, or when `MAESTER_DISABLE_TELEMETRY` is set to `1`. See the Maester documentation for details.
+The pack is installed from this private GitHub repository (with a token that can read it) or from a local
+folder. Maester sends an anonymous install event only for a pack from a public GitHub repository, so nothing about
+this pack is sent to Maester Packs. The token is sent to `api.github.com` only. See the Maester documentation for
+details.
 
 This document describes the repository's intended behavior and is not legal advice.

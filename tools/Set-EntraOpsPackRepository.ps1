@@ -5,13 +5,14 @@ function Set-EntraOpsPackRepository {
     test, the guide, the documentation and the GitHub templates.
 
     .DESCRIPTION
-    The pack is tested in a private Insiders repository (EntraOps-Insiders-MaesterPack) before it is published
-    as EntraOps-MaesterPack. Build-EntraOpsMaesterPack.ps1 of EntraOps always writes the links of the published
-    repository, so run this function after each build of the Insiders pack, and once more before publishing to
-    switch back and remove the notes that apply to the Insiders repository only (-RemoveInsidersSection).
+    The pack is distributed internally from the private repository EntraOps-Insiders-MaesterPack.
+    Build-EntraOpsMaesterPack.ps1 of EntraOps always writes the links of the published repository
+    (EntraOps-MaesterPack), so run this function after each build to point the links to this repository again.
+    Should the pack ever be published, -RemoveInsidersSection also removes the notes that apply to the internal
+    repository only.
 
     The current repository is read from Homepage in maester-pack.json. Every <Owner>/<current repository> in the
-    text files of the pack (not in .git, not in this file) becomes <Owner>/<Name>. A name without the owner, such
+    text files of the pack (not in .git or .claude, not in this file) becomes <Owner>/<Name>. A name without the owner, such
     as the local folder of a clone, is not changed. With -RemoveInsidersSection, the parts of the Markdown files
     between <!-- insiders:start --> and <!-- insiders:end --> are removed first.
 
@@ -34,14 +35,7 @@ function Set-EntraOpsPackRepository {
     . ./tools/Set-EntraOpsPackRepository.ps1
     Set-EntraOpsPackRepository -Name EntraOps-Insiders-MaesterPack
 
-    After a build from EntraOps: points the links to the private Insiders repository again.
-
-    .EXAMPLE
-    . ./tools/Set-EntraOpsPackRepository.ps1
-    Set-EntraOpsPackRepository -Name EntraOps-MaesterPack -RemoveInsidersSection -WhatIf
-
-    Before publishing: shows which files would point to the public repository and lose the Insiders notes.
-    Run it again without -WhatIf to change them.
+    After a build from EntraOps: points the links to the private repository again.
     #>
     [CmdletBinding(SupportsShouldProcess)]
     [OutputType([pscustomobject])]
@@ -74,7 +68,8 @@ function Set-EntraOpsPackRepository {
 
     $files = Get-ChildItem -LiteralPath $root -File -Recurse -Force | Where-Object {
         $relative = [System.IO.Path]::GetRelativePath($root, $_.FullName)
-        $relative -notmatch '^\.git([\\/]|$)' -and
+        # .claude holds the agent instructions that name the internal and the public repository on purpose.
+        $relative -notmatch '^\.(git|claude)([\\/]|$)' -and
         $_.Name -ne '.DS_Store' -and
         $_.Extension -notin $binaryExtensions -and
         $_.FullName -ne $PSCommandPath

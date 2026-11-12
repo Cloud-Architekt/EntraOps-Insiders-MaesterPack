@@ -18,23 +18,33 @@ module (`Test-MtPack`: Low risk).
 
 <!-- insiders:start -->
 > [!IMPORTANT]
-> **Insiders preview.** This private repository tests the pack before it is published as EntraOps-MaesterPack.
-> Until then:
+> **Internal pack.** This repository is private, and the pack is distributed only through it: only people and
+> pipelines with read access to the repository can install the pack and open its links (the Docs page of each
+> test). The pack is not published to the Maester Packs index.
 >
 > - EntraOps 1.2.0 is not on the PowerShell Gallery yet (it has 1.1.0, without findings). Import the module from
 >   a clone of the EntraOps Insiders repository: `Import-Module ./EntraOps/EntraOps.psd1`.
 > - Maester 3.0 is a prerelease: `Install-PSResource -Name Maester -Prerelease -Repository PSGallery -Scope CurrentUser`.
 >   The checks of this repository use 3.0.0-rc67; the pack's menu in the report needs 3.0.0-rc56 or later.
-> - The repository is private and has no release yet. Install the pack from `main` with a GitHub token that can
->   read it, or from a local clone:
+> - Install the pack with a GitHub token that can read this repository. Maester sends the token to
+>   `api.github.com` only and, for a private repository, sends nothing to Maester Packs (no install event).
+>   Without a token, GitHub answers that the repository does not exist. Before the first release, install `main`:
 >
 >   ```powershell
 >   $env:GH_TOKEN = gh auth token
+>   # The newest release
+>   Install-MtPack Cloud-Architekt/EntraOps-Insiders-MaesterPack
+>   # Before the first release, or a release younger than the install cooldown (72 hours)
 >   Install-MtPack Cloud-Architekt/EntraOps-Insiders-MaesterPack@main -IncludeRecent
 >   # Or from a clone of this repository
 >   Install-MtPack ./EntraOps-Insiders-MaesterPack
 >   ```
 >
+> - In a pipeline, `Restore-MtPack` needs the token as well. The `GITHUB_TOKEN` of a GitHub Actions workflow reads
+>   only the repository of the workflow, so store a fine-grained token with read access to the contents of this
+>   repository (or a GitHub App token) as a secret, and pass it as `GH_TOKEN`.
+> - The pack code `EOPS` is not registered in the Maester Packs index. Maester refuses to install a pack whose code
+>   overlaps the code of an installed pack, so a public pack with the code `EOPS` cannot be installed next to this one.
 > - `Install-MtPack` of a folder copies every file except `.git`, also those that `.gitignore` leaves out: Finder's
 >   `.DS_Store` files (binary files make the pack High risk) and the output of local Maester runs
 >   (`test-results`, with tenant data). Install a copy with the files of git only, or write the Maester output
@@ -52,31 +62,28 @@ module (`Test-MtPack`: Low risk).
 >
 > - The links to the EntraOps rule catalog, the build script and the EntraOps documentation of findings work
 >   once EntraOps 1.2.0 is published.
-> - **Sync from EntraOps** generates the pack from the EntraOps Insiders repository with the Actions variable
->   `ENTRAOPS_REPOSITORY` = `Cloud-Architekt/entraops-insiders` and the secret `ENTRAOPS_TOKEN` (a fine-grained
->   token with read access to its contents), and points the links to this repository itself.
-> - The build in EntraOps writes the links of the published repository and needs `-OutputPath` for this folder.
->   After a local build, point the links to this repository again; before publishing, point them to the
->   published repository and remove these notes:
+> - **Sync from EntraOps** generates the pack from the EntraOps Insiders repository (`Cloud-Architekt/entraops-insiders`,
+>   the default source, with the secret `ENTRAOPS_TOKEN`: a fine-grained token with read access to its contents) or
+>   from the public EntraOps repository (source `EntraOps`), and points the links to this repository itself.
+> - The build in EntraOps writes the links of the published repository (EntraOps-MaesterPack) and needs
+>   `-OutputPath` for this folder. After a local build, point the links to this repository again:
 >
 >   ```powershell
 >   ../entraops-insiders/Integrations/Maester/Build-EntraOpsMaesterPack.ps1 -OutputPath .
 >   . ./tools/Set-EntraOpsPackRepository.ps1
 >   Set-EntraOpsPackRepository -Name EntraOps-Insiders-MaesterPack
->   # Before publishing
->   Set-EntraOpsPackRepository -Name EntraOps-MaesterPack -RemoveInsidersSection
 >   ```
 <!-- insiders:end -->
 
 ## Checks
 
-57 tests in eight categories. The first digit of the ID is the category, which is also a tag of the test
+58 tests in eight categories. The first digit of the ID is the category, which is also a tag of the test
 (`Invoke-Maester -Pack EOPS -Tag 'Just-in-time access'`).
 
 | IDs | Category | Checks |
 | --- | --- | --- |
 | `MP.EOPS.1xxx` | Tier boundaries | Lower tiers that control objects, services or access of a more privileged tier |
-| `MP.EOPS.2xxx` | Classification | Objects, role assignments and approvers without a tier; custom roles to review |
+| `MP.EOPS.2xxx` | Classification | Objects, role assignments, approvers and access package target groups without a tier; custom roles to review |
 | `MP.EOPS.3xxx` | Just-in-time access | Standing access and the PIM settings of eligible assignments and activations |
 | `MP.EOPS.4xxx` | Account protection | Restricted management, cloud-only and member accounts, PAW, Conditional Access |
 | `MP.EOPS.5xxx` | Workload and agent identities | Service principals, applications and agents with privileged access |
@@ -117,13 +124,16 @@ alone (without `New-EntraOpsReportingData`) skips these rules with the reason.
 
 ### 2. Install the pack
 
+The repository is private: install the pack with a GitHub token that can read it.
+
 ```powershell
+$env:GH_TOKEN = gh auth token
 Install-MtPack Cloud-Architekt/EntraOps-Insiders-MaesterPack
 ```
 
 Maester shows what the pack can reach (nothing) and installs the newest release that is older than the install
 cooldown (72 hours). Commit `maester-config.json` and `maester-packs.lock.json`, and run `Restore-MtPack` in
-pipelines.
+pipelines, with `GH_TOKEN` set to a token that can read this repository (a secret of the pipeline).
 
 ### 3. Run the pack
 
@@ -251,7 +261,7 @@ findings again. See
 | --- | --- |
 | Passed | EntraOps evaluated the rule and found no affected object, or only findings dismissed as false positives (the result names their number). |
 | Failed | EntraOps found at least one affected object that is not dismissed or risk accepted. The result lists the first 50 with their links and names the accepted findings and the unclassified objects apart. |
-| Investigate | EntraOps found objects for a check that asks for a review, not a fix (`Investigate` in the EntraOps rule catalog): `MP.EOPS.2004`, `4010`, `5004`, `5005`, `8001` and `8003`, for example custom roles with Control Plane permissions. Confirm that each is intended; accept the intended ones with a finding exception. Results of EntraOps versions without the flag report them as Failed. |
+| Investigate | EntraOps found objects for a check that asks for a review, not a fix (`Investigate` in the EntraOps rule catalog): `MP.EOPS.2004`, `2005`, `4010`, `5004`, `5005`, `8001` and `8003`, for example custom roles with Control Plane permissions. Confirm that each is intended; accept the intended ones with a finding exception. Results of EntraOps versions without the flag report them as Failed. |
 | Skipped | The findings of the rule are risk accepted in EntraOps and none is open (the reason lists the accepted risks). Or the rule is excluded or deprecated in EntraOps, had nothing to evaluate or its data was missing; the results are missing, belong to another tenant, are too old or have an unknown schema; or the results were written by an EntraOps version without the rule. |
 | Error | EntraOps could not evaluate the rule (status `Error` in `findings.json`). The result shows the reason; run the EntraOps evaluation again. |
 
@@ -279,6 +289,7 @@ rules and the helper template in EntraOps, not here. This repository maintains t
 | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `PRIVACY.md` | This repository: the community files |
 | `ci/` | The checks of the pack (`ci/PackChecks.ps1`) and synthetic results (`ci/fixtures/findings.json`) |
 | `tools/` | `Set-EntraOpsPackRepository.ps1`: points the links of the pack to another repository |
+| `.claude/skills/public-pack-repo/` | Instructions for a coding agent to create or sync the public pack repository (`EntraOps-MaesterPack`) from this one; never copied there |
 | `.github/` | Workflows, ruleset and templates (issues, pull requests, code owners, Dependabot) |
 
 The whole repository is the pack, so every `.ps1` file may contain function definitions only; Maester refuses
@@ -293,17 +304,18 @@ pack alone (for example of the guide) is released with the next EntraOps version
 1. In EntraOps: raise `ModuleVersion` of `EntraOps.psd1`, record the rules of the release in
    `FindingRules.lock.json` (`./Integrations/Maester/Build-EntraOpsMaesterPack.ps1 -Release`) and merge it.
 2. Here: run **Sync from EntraOps** (`.github/workflows/sync-from-entraops.yml`) for the EntraOps tag or
-   commit. It generates the pack, points its links to this repository, opens a pull request with the changes
+   commit, from `entraops-insiders` (default) or the public `EntraOps` repository. It generates the pack, points its links to this repository, opens a pull request with the changes
    and starts the checks on it.
 3. Add the changes to the version's section of `CHANGELOG.md` (`## <Version>`) and merge the pull request.
    **Release** (`.github/workflows/release.yml`) checks the merge, tags the commit `v<Version>` and publishes the
    release with the changelog section as its notes. It refuses a pack generated from local EntraOps changes
-   (`LocalChanges` in `entraops-source.json`) and a pack whose links point to another repository. It also refuses a
-   release while a link of the tests does not open (the Docs page of a test, the EntraOps rule catalog, the
-   sections of the EntraOps documentation): release EntraOps and its documentation first, and make this
-   repository public.
-4. Maester users get the release after the install cooldown (72 hours); the Maester Packs index lists it
-   automatically once the pack is published.
+   (`LocalChanges` in `entraops-source.json`), a pack whose links point to another repository, and a pack whose
+   links into this repository (the Docs page of a test) name a file that the commit does not have. The links to
+   EntraOps (the rule catalog and the sections of the EntraOps documentation) only warn until EntraOps publishes
+   the version, because the repository is private and the release is internal.
+4. People with access to this repository get the release with `Install-MtPack` or `Update-MtPack` after the
+   install cooldown (72 hours), or right away with `-IncludeRecent`. The release stays in this repository: it is
+   not published to the Maester Packs index.
 
 Test IDs never change once released, because Maester refuses an update of a pack whose tests change their
 meaning. EntraOps adds new rules at the end of their category and keeps a rule that is no longer needed with
@@ -330,22 +342,21 @@ To generate the pack locally from an EntraOps clone next to this repository:
 
 ### Repository settings
 
-- Public repository with the MIT license.
+- Private repository: give read access to the people and pipelines that install the pack. Rulesets on a private
+  repository need GitHub Pro, Team or Enterprise.
 - Release immutability on (Settings › General › Releases), so the install cooldown counts from the publication.
 - The ruleset in `.github/rulesets/main.json` (import it under Settings › Rules › Rulesets): pull requests and
   the `check` status are required on `main`.
 - Actions › General: "Allow GitHub Actions to create and approve pull requests" on, for **Sync from EntraOps**.
 - Actions variable `PACK_RELEASES` = `true` once the first version is ready to be released.
-- Optional, for another EntraOps repository than `Cloud-Architekt/EntraOps`: the Actions variable
-  `ENTRAOPS_REPOSITORY` and, for a private one, the secret `ENTRAOPS_TOKEN` with read access to its contents.
+- The secret `ENTRAOPS_TOKEN` with read access to the contents of the EntraOps Insiders repository
+  (`Cloud-Architekt/entraops-insiders`), for **Sync from EntraOps** with the source `entraops-insiders` (the
+  default). The source `EntraOps` (the public repository) needs no token.
 
-### Publish to the Maester Packs index
+### Maester Packs index
 
-After the first release: sign in to [packs.maester.cloud](https://packs.maester.cloud/publish) with GitHub as an
-admin of this repository, choose the repository, press **Check** and **Publish**. This registers the pack's
-Guid and code (`EOPS`) to `Cloud-Architekt`; the index lists the pack within about ten minutes after its checks
-and security scan pass. If a version is not listed, `https://packs.maester.cloud/status/Cloud-Architekt/EntraOps-Insiders-MaesterPack`
-gives the reason.
+The pack is internal, so it is not published to the Maester Packs index ([packs.maester.cloud](https://packs.maester.cloud)),
+which lists packs for everyone. Its Guid and code (`EOPS`) are therefore not registered there.
 
 ## License
 

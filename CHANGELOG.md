@@ -5,9 +5,16 @@ module it is generated from; the release workflow uses the section of a version 
 
 ## 1.2.0
 
-- First release of the EntraOps Maester Pack (code `EOPS`): 57 tests `MP.EOPS.<n>`, one per EntraOps
+- First release of the EntraOps Maester Pack (code `EOPS`): 58 tests `MP.EOPS.<n>`, one per EntraOps
   finding rule, in eight categories (tier boundaries, classification, just-in-time access, account protection,
   workload and agent identities, access governance, ownership and delegation, drift).
+- Internal pack: it is distributed only through its private GitHub repository. `Install-MtPack` and
+  `Restore-MtPack` need a token that can read the repository (`GH_TOKEN`); the pack is not published to the Maester
+  Packs index, and Maester sends no install event for it.
+- `MP.EOPS.2005` (Investigate) reports access package target groups without role assignments and without a tier in
+  the EntraOps Object Classification File, whose access the access package checks cannot compare.
+- The guide names `Findings.EmergencyAccessAccounts` of EntraOps as the first setting: without it, Conditional Access
+  policies that exclude the emergency access accounts or their group fail `MP.EOPS.4003`.
 - `MP.EOPS.6003` (unauthorized access) and `MP.EOPS.6004` (missing access) report the access drift
   (Microsoft Entra ID Governance > Access Guardian) of Control Plane and Management Plane access package resources.
 - The tests report the results of the `findings.json` that EntraOps 1.2.0 or later writes, from
@@ -48,7 +55,7 @@ module it is generated from; the release workflow uses the section of a version 
 - In Maester's affected objects (by default since Maester 3.0.0-rc73, with `-IncludeAffectedObjects` before), the users, groups, service principals and Conditional Access
   policies of the failed tests are listed on Maester's Affected objects page (all of them, also beyond the 50 findings
   of the tables), with their EntraOps tier.
-- The checks that ask for a review, not a fix (`MP.EOPS.2004`, `4010`, `5004`, `5005`, `8001`, `8003`: `Investigate`
+- The checks that ask for a review, not a fix (`MP.EOPS.2004`, `2005`, `4010`, `5004`, `5005`, `8001`, `8003`: `Investigate`
   in the EntraOps rule catalog and in `findings.json`) report their findings as Maester's Investigate result instead
   of Failed. Results of EntraOps versions without the flag still report them as Failed.
 - The results show the affected objects in tables of two columns, so they fit the result panel of the Maester
@@ -72,8 +79,10 @@ module it is generated from; the release workflow uses the section of a version 
   "Reported when:" for a review), as Maester shows it with passed tests as well.
 - A failed test says how many of its findings are on unclassified objects and lists these objects last: classify
   them first (`MP.EOPS.2001`). Counts are written out ("1 affected instance", "87 affected instances").
-- The release refuses a pack whose test links do not open (the Docs page of a test, the EntraOps rule catalog and
-  the sections of the EntraOps documentation).
+- The release refuses a pack whose links into its repository (the Docs page of a test) name a file that the release
+  does not have. Links to EntraOps (the rule catalog and the sections of the EntraOps documentation) only warn until
+  EntraOps publishes the version.
+- A reason of EntraOps that refers to another rule names its Maester test (`MP.EOPS.2001` instead of `EO.2001`).
 - When the results cannot be used, all tests are skipped with the reason and what to do, and `Invoke-Maester`
   shows it once as a warning: no `findings.json` (with the full path checked, also for a relative
   `EntraOps.FindingsPath`, which may start with `~`), a file that is empty, cut off or no EntraOps finding results

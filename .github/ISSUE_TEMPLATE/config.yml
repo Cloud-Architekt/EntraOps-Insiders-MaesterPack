@@ -1,11 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Result of a check
-    url: https://github.com/Cloud-Architekt/EntraOps/issues
-    about: EntraOps evaluates the checks. Report a finding you consider wrong, a missing check or a threshold to EntraOps.
   - name: Security vulnerability
     url: https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack/blob/main/SECURITY.md
-    about: Report vulnerabilities privately. Do not create a public issue.
-  - name: Community support
+    about: Report vulnerabilities to the maintainers directly. Do not create an issue.
+  - name: Support
     url: https://github.com/Cloud-Architekt/EntraOps-Insiders-MaesterPack/blob/main/SUPPORT.md
     about: Review support boundaries and where to report a problem before opening an issue.

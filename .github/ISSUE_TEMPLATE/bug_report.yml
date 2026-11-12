@@ -8,7 +8,7 @@ body:
     attributes:
       value: |
         Search existing issues before reporting a new defect. Do not include credentials, tokens, `findings.json` or unredacted tenant data.
-        A finding you consider wrong, a missing check or a threshold belongs to [EntraOps](https://github.com/Cloud-Architekt/EntraOps/issues), which evaluates the checks.
+        A finding you consider wrong, a missing check or a threshold is reported here as well: EntraOps evaluates the checks, and the maintainers take it to EntraOps. Don't report results of this internal version in the public EntraOps repository.
   - type: textarea
     id: summary
     attributes:

@@ -3,12 +3,20 @@ name: Sync from EntraOps
 # Generates the pack from an EntraOps tag or commit (Build-EntraOpsMaesterPack.ps1), points its links to this
 # repository, opens a pull request with the changes and starts the checks on it.
 #
-# The EntraOps repository is Cloud-Architekt/EntraOps unless the Actions variable ENTRAOPS_REPOSITORY names
-# another one. A private one (the Insiders repository) needs the secret ENTRAOPS_TOKEN: a fine-grained token
-# with read access to its contents.
+# The input source selects the EntraOps repository: the private Insiders repository
+# (Cloud-Architekt/entraops-insiders, the default) or the public one (Cloud-Architekt/EntraOps). The Insiders
+# repository needs the secret ENTRAOPS_TOKEN: a fine-grained token with read access to its contents.
 on:
   workflow_dispatch:
     inputs:
+      source:
+        description: The EntraOps repository to generate the pack from
+        required: true
+        type: choice
+        default: entraops-insiders
+        options:
+          - entraops-insiders
+          - EntraOps
       ref:
         description: The EntraOps tag, branch or commit to generate the pack from
         required: true
@@ -28,9 +36,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      ENTRAOPS_REPOSITORY: ${{ vars.ENTRAOPS_REPOSITORY || 'Cloud-Architekt/EntraOps' }}
+      ENTRAOPS_REPOSITORY: Cloud-Architekt/${{ inputs.source }}
       PACK_REPOSITORY_NAME: ${{ github.event.repository.name }}
     steps:
+      - name: Check the token of the Insiders repository
+        if: inputs.source == 'entraops-insiders'
+        shell: pwsh
+        env:
+          HAS_ENTRAOPS_TOKEN: ${{ secrets.ENTRAOPS_TOKEN != '' }}
+        run: |
+          if ($env:HAS_ENTRAOPS_TOKEN -ne 'true') { throw 'The Insiders repository is private: add the secret ENTRAOPS_TOKEN, a fine-grained token with read access to the contents of Cloud-Architekt/entraops-insiders.' }
+
       - name: Check out the pack
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -41,7 +57,7 @@ jobs:
         with:
           repository: ${{ env.ENTRAOPS_REPOSITORY }}
           ref: ${{ inputs.ref }}
-          token: ${{ secrets.ENTRAOPS_TOKEN || github.token }}
+          token: ${{ inputs.source == 'entraops-insiders' && secrets.ENTRAOPS_TOKEN || github.token }}
           path: entraops
           persist-credentials: false
 
@@ -59,6 +75,7 @@ jobs:
         working-directory: pack
         env:
           GH_TOKEN: ${{ github.token }}
+          ENTRAOPS_SOURCE: ${{ inputs.source }}
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           if (-not (git status --porcelain)) {
@@ -67,13 +84,13 @@ jobs:
           }
           $source = Get-Content -LiteralPath entraops-source.json -Raw | ConvertFrom-Json
           $short = "$($source.Commit)".Substring(0, 7)
-          $branch = "sync/entraops-$($source.Version)-$short"
+          $branch = "sync/$($env:ENTRAOPS_SOURCE.ToLowerInvariant())-$($source.Version)-$short"
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git switch --create $branch
           git add --all
-          git commit --message "Sync from EntraOps $($source.Version) ($short)"
+          git commit --message "Sync from $env:ENTRAOPS_SOURCE $($source.Version) ($short)"
           git push --force origin $branch
 
           if (-not (gh pr list --head $branch --state open --json number --jq '.[].number')) {
@@ -83,7 +100,7 @@ jobs:
                   "Before merging, add the changes to the section ``## $($source.Version)`` of CHANGELOG.md, and to TESTS.md when the tests changed. **Release** publishes the version after the merge."
               ) -join "`n"
               $body | Set-Content -LiteralPath "$env:RUNNER_TEMP/sync-body.md"
-              gh pr create --base main --head $branch --title "Sync from EntraOps $($source.Version) ($short)" --body-file "$env:RUNNER_TEMP/sync-body.md"
+              gh pr create --base main --head $branch --title "Sync from $env:ENTRAOPS_SOURCE $($source.Version) ($short)" --body-file "$env:RUNNER_TEMP/sync-body.md"
           }
           # A pull request opened with the workflow token starts no workflow: start the checks on its branch.
           gh workflow run check-pack.yml --ref $branch

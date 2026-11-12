@@ -66,8 +66,8 @@ function Get-EntraOpsPackFindingSet {
 
     Skips the calling test, with the reason and what to do, when the file is missing, cannot be read (for example
     cut off), is no EntraOps finding results file, has an unknown schema, belongs to another tenant than the
-    Microsoft Graph connection, or is older than EntraOps.MaxFindingsAgeDays (default 7 days, 0 turns the check
-    off), and when that setting is not a number of days. The console of Invoke-Maester shows the reason once.
+    Microsoft Graph connection, is older than EntraOps.MaxFindingsAgeDays (default 7 days, 0 turns the check
+    off) or has no readable date to check its age, and when that setting is not a number of days. The console of Invoke-Maester shows the reason once.
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
@@ -156,6 +156,10 @@ function Get-EntraOpsPackFindingSet {
         [datetime]::TryParse([string]$findingSet.GeneratedAt, [cultureinfo]::InvariantCulture,
             [System.Globalization.DateTimeStyles]::AdjustToUniversal -bor [System.Globalization.DateTimeStyles]::AssumeUniversal, [ref]$generatedAt)
     }
+    if ($maxAgeDays -gt 0 -and -not $hasDate) {
+        Skip-EntraOpsPackTest "The EntraOps finding results at $path have no readable date (GeneratedAt '$($findingSet.GeneratedAt)'), so their age cannot be checked. Create them again: $howTo. To use them anyway, set EntraOps.MaxFindingsAgeDays in maester-config.json to 0."
+        return
+    }
     if ($maxAgeDays -gt 0 -and $hasDate -and $generatedAt.ToUniversalTime() -lt [datetime]::UtcNow.AddDays(-$maxAgeDays)) {
         Skip-EntraOpsPackTest "The EntraOps finding results at $path were written on $($generatedAt.ToString('yyyy-MM-dd')), more than $maxAgeDays days ago. Run Invoke-EntraOpsAssessment or New-EntraOpsReportingData again, or raise the EntraOps.MaxFindingsAgeDays setting."
         return
@@ -163,6 +167,8 @@ function Get-EntraOpsPackFindingSet {
 
     $reports = Get-EntraOpsPackReportBase -FindingsFile $file.FullName
     if ($reports.Note) { Write-EntraOpsPackWarning "EntraOps Maester Pack: $($reports.Note)" }
+    # Links to a folder open on this computer only.
+    if ($reports.Base -and $reports.Base -notmatch '^https?://') { Write-EntraOpsPackWarning "EntraOps Maester Pack: the results link to the EntraOps reports in the local folder $($reports.Base), so the links open on this computer only and show its path. For a Maester report that others open, set EntraOps.ReportsPath in maester-config.json to the URL of the published EntraOps reports, or to None." }
     $findingSet | Add-Member -NotePropertyName GeneratedText -NotePropertyValue $(if ($hasDate) { $generatedAt.ToUniversalTime().ToString('yyyy-MM-dd HH:mm', [cultureinfo]::InvariantCulture) + ' UTC' } else { [string]$findingSet.GeneratedAt }) -Force
     $findingSet | Add-Member -NotePropertyName GeneratedAtUtc -NotePropertyValue $(if ($hasDate) { $generatedAt.ToUniversalTime() } else { $null }) -Force
     $findingSet | Add-Member -NotePropertyName ReportBase -NotePropertyValue $reports.Base -Force
@@ -506,7 +512,10 @@ function ConvertTo-EntraOpsPackFindingText {
 
         [int] $Position = -1,
 
-        [string] $Value
+        [string] $Value,
+
+        # The number of names in Value: with several, the text around them is put in the plural.
+        [int] $ValueCount = 1
     )
 
     # Emphasis, sparingly: the tiers in bold (why it is a finding), the role or permission that a name follows in bold
@@ -515,6 +524,11 @@ function ConvertTo-EntraOpsPackFindingText {
     $text = for ($index = 0; $index -lt $Split.Parts.Count; $index++) {
         # The text between the names can hold a part of a name with an apostrophe: no link, code or emphasis from it either.
         $part = $Split.Parts[$index]
+        if ($Position -ge 0 -and $ValueCount -gt 1) {
+            # Several names in one place: "the role A and B" is "the roles A and B", "A and B has" is "A and B have".
+            if ($index -eq $Position) { $part = $part -creplace '\b(role|permission)(\s)$', '$1s$2' }
+            if ($index -eq $Position + 1 -and $Position -eq 0 -and -not $Split.Parts[0].Trim()) { $part = $part -creplace '^((?: \([^()]*\))? )has\b', '$1have' }
+        }
         (ConvertTo-EntraOpsPackText ($part -replace '([\\`*\[\]])', '\$1')) -replace $guid, '`$0`' -creplace '(?<![/-] ?)\b(Control Plane|Management Plane|Workload Plane|User Access)\b(?! ?[/-])', '**$1**'
         if ($index -lt $Split.Names.Count) {
             $name = $Split.Names[$index]
@@ -902,11 +916,13 @@ function ConvertTo-EntraOpsPackLineText {
         foreach ($finding in $Line.Findings) { $name = $finding.Split.Names[$Line.Position]; if (-not $byName.Contains($name)) { $byName[$name] = $finding } }
         $names = @(foreach ($name in @($byName.Keys | Select-Object -First $MaxNames)) {
                 $own = @($byName[$name].Links | Where-Object { $_.Href -notin $lineHrefs }) | Select-Object -First 1
-                if ($own) { "[$(ConvertTo-EntraOpsPackName $name)]($($own.Href) `"EntraOps $($own.Label -replace '"', "'")`")" } else { ConvertTo-EntraOpsPackName $name }
+                $shown = if ($own) { "[$(ConvertTo-EntraOpsPackName $name)]($($own.Href) `"EntraOps $($own.Label -replace '"', "'")`")" } else { ConvertTo-EntraOpsPackName $name }
+                # The role or permission that a name follows is bold, as a single name is (ConvertTo-EntraOpsPackFindingText).
+                if ($Line.Split.Parts[$Line.Position] -match '(?i)(\b(role|permission)s?|^Holds)\s$') { "**$shown**" } else { $shown }
             })
         if ($byName.Count -gt $MaxNames) { $names += "$($byName.Count - $MaxNames) more" }
         $value = if ($names.Count -gt 1) { "$($names[0..($names.Count - 2)] -join ', ') and $($names[-1])" } else { $names[0] }
-        $text = ConvertTo-EntraOpsPackFindingText -Split $Line.Split -Position $Line.Position -Value $value
+        $text = ConvertTo-EntraOpsPackFindingText -Split $Line.Split -Position $Line.Position -Value $value -ValueCount $byName.Count
     }
     $linkText = ConvertTo-EntraOpsPackLinkText $lineLinks
     if ($numbered.Count) { $linkText = if ($linkText) { "$linkText · $($numbered -join ' · ')" } else { "↗ $($numbered -join ' · ')" } }
@@ -1336,6 +1352,40 @@ function ConvertTo-EntraOpsPackMarkdownCell {
     ("$Value" -replace '([\\`\[\]])', '\$1' -replace '[\r\n]+', ' ' -replace '\|', '\|' -replace '<', '&lt;' -replace '>', '&gt;' -replace '@', '\@').Trim()
 }
 
+function ConvertTo-EntraOpsPackTestReference {
+    <#
+    .SYNOPSIS
+    Names the Maester tests instead of the EntraOps rules that a reason of EntraOps refers to.
+
+    .DESCRIPTION
+    A reason of EntraOps can send the reader to another rule ("Classify these objects (EO.2001)"). In Maester that
+    check is a test of the pack (MP.EOPS.2001), as the pack's own text names it. The rule of the reason itself stays
+    an EntraOps rule: the text around it names that rule and links to it in the EntraOps Findings view. A rule
+    without a test of the pack stays as it is.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [AllowNull()]
+        [AllowEmptyString()]
+        [string] $Text,
+
+        # The rules of the finding results, with the Maester test of each rule (MaesterTestId).
+        [object[]] $Rules,
+
+        # The rule of the reason, which keeps its EntraOps ID.
+        [string] $RuleId
+    )
+
+    if (-not $Text) { return $Text }
+    foreach ($id in @([regex]::Matches($Text, '\bEO\.\d{4}\b') | ForEach-Object Value | Select-Object -Unique)) {
+        if ($id -eq $RuleId) { continue }
+        $testId = @($Rules | Where-Object { $_.RuleId -eq $id -and $_.MaesterTestId } | ForEach-Object { [string]$_.MaesterTestId }) | Select-Object -First 1
+        if ($testId) { $Text = $Text -creplace "\b$([regex]::Escape($id))\b", $testId }
+    }
+    $Text
+}
+
 function Test-EntraOpsPackFinding {
     <#
     .SYNOPSIS
@@ -1388,8 +1438,10 @@ function Test-EntraOpsPackFinding {
     $source = "EntraOps $($findingSet.Generator.Version) results of $(if ($tenant) { "$(ConvertTo-EntraOpsPackMarkdownCell $tenant), " })$($findingSet.GeneratedText)"
     # What the reason of the rule is (ReasonCode of EntraOps; results of older versions have none).
     $reasonCode = if ($null -ne $rule.PSObject.Properties['ReasonCode'] -and $rule.ReasonCode) { [string]$rule.ReasonCode } else { $null }
+    # The reason as the results show it: other rules it refers to are named by their Maester test.
+    $ruleReason = ConvertTo-EntraOpsPackTestReference -Text ([string]$rule.Reason) -Rules @($findingSet.Rules) -RuleId $RuleId
     # The note of a Failed or Passed rule: data it could not evaluate, or a hint how to fix the results.
-    $note = if ($rule.Reason -and $rule.Status -in 'Failed', 'Passed') { "Note: $($rule.Reason)" } else { $null }
+    $note = if ($ruleReason -and $rule.Status -in 'Failed', 'Passed') { "Note: $ruleReason" } else { $null }
     # The links of the results: to the EntraOps reports (when found) and to the Microsoft Entra admin center.
     $reportBase = [string]$findingSet.ReportBase
     $portalUrl = Get-EntraOpsPackPortalUrl
@@ -1403,7 +1455,7 @@ function Test-EntraOpsPackFinding {
     switch ([string]$rule.Status) {
         'Excluded' {
             # Excluded in EntraOpsConfig.json (Findings.ExcludedRules), or deprecated in EntraOps (with the reason).
-            $why = if ($rule.Reason) { $rule.Reason } else { 'It is excluded in the EntraOps configuration (Findings.ExcludedRules).' }
+            $why = if ($ruleReason) { $ruleReason } else { 'It is excluded in the EntraOps configuration (Findings.ExcludedRules).' }
             $reason = "EntraOps did not evaluate rule $($RuleId): $why"
             Add-MtTestResultDetail -SkippedBecause Custom -SkippedCustomReason $reason -Result "Skipped. $(ConvertTo-EntraOpsPackMarkdownCell $reason)`n`n$footer"
             return
@@ -1411,7 +1463,7 @@ function Test-EntraOpsPackFinding {
         'Error' {
             # Maester reports a thrown error as the result Error with its message (ReasonCode TestError). The result
             # detail recorded first replaces the error record (with the line of this file) in the report.
-            $why = if ($rule.Reason) { $rule.Reason } else { 'No reason was recorded.' }
+            $why = if ($ruleReason) { $ruleReason } else { 'No reason was recorded.' }
             $message = "EntraOps could not evaluate rule $($RuleId): $why"
             Add-MtTestResultDetail -Result "$message`n`nRun the EntraOps evaluation again (Invoke-EntraOpsAssessment or New-EntraOpsReportingData).`n`n$footer"
             throw $message
@@ -1422,11 +1474,11 @@ function Test-EntraOpsPackFinding {
             $notApplicable = $reasonCode -eq 'NotApplicable' -or (-not $reasonCode -and (-not $rule.Reason -or $rule.Reason -match 'in the scope of this rule \(0 evaluated\)'))
             if ($notApplicable) {
                 # The reason says why, for example that another rule reports it: the result keeps it next to Maester's reason.
-                $why = if ($rule.Reason) { "Skipped. EntraOps did not evaluate rule $($RuleId) because it does not apply: $(ConvertTo-EntraOpsPackMarkdownCell $rule.Reason)$contextText`n`n$footer" } else { $null }
+                $why = if ($ruleReason) { "Skipped. EntraOps did not evaluate rule $($RuleId) because it does not apply: $(ConvertTo-EntraOpsPackMarkdownCell $ruleReason)$contextText`n`n$footer" } else { $null }
                 Add-MtTestResultDetail -SkippedBecause NotApplicable -Result $why
             } elseif ($reasonCode -eq 'Unclassified' -or (-not $reasonCode -and $rule.Reason -like 'Only unclassified objects are affected*')) {
                 # The unclassified objects that the rule would report once they are classified, by object.
-                $reason = "EntraOps did not report rule $($RuleId): $($rule.Reason)"
+                $reason = "EntraOps did not report rule $($RuleId): $ruleReason"
                 $unclassified = @($rule.UnclassifiedResults | Where-Object { $_ })
                 $lines = [System.Collections.Generic.List[string]]::new()
                 $lines.Add("Skipped. $(ConvertTo-EntraOpsPackMarkdownCell $reason)")
@@ -1440,7 +1492,7 @@ function Test-EntraOpsPackFinding {
                 $lines.Add($footer)
                 Add-MtTestResultDetail -SkippedBecause Custom -SkippedCustomReason $reason -Result ($lines -join "`n")
             } else {
-                $reason = "EntraOps could not evaluate rule $($RuleId): $($rule.Reason)"
+                $reason = "EntraOps could not evaluate rule $($RuleId): $ruleReason"
                 Add-MtTestResultDetail -SkippedBecause Custom -SkippedCustomReason $reason -Result "Skipped. $(ConvertTo-EntraOpsPackMarkdownCell $reason)`n`n$footer"
             }
             return
@@ -1472,15 +1524,23 @@ function Test-EntraOpsPackFinding {
             # unknown: classifying these objects comes first. Not for the rule that reports the classification itself.
             $onUnclassified = @($results | Where-Object { "$($_.Instance.AdminTierLevelName)" -eq 'Unclassified' })
             if ($onUnclassified.Count -and $RuleId -ne 'EO.2001') {
-                $unclassifiedObjects = @($onUnclassified | ForEach-Object { if ($_.Instance.ObjectId) { [string]$_.Instance.ObjectId } else { [string]$_.Instance.Id } } | Select-Object -Unique).Count
-                $summary.Add("❔ $(if ($onUnclassified.Count -eq $results.Count) { 'All of them are' } else { "$($onUnclassified.Count) of them are" }) on $(Get-EntraOpsPackCountText $unclassifiedObjects 'unclassified object'), listed last: classify these objects first (MP.EOPS.2001), as their tier decides what applies to them.")
+                $unclassifiedIds = @($onUnclassified | ForEach-Object { if ($_.Instance.ObjectId) { [string]$_.Instance.ObjectId } else { [string]$_.Instance.Id } } | Select-Object -Unique)
+                # EO.2001 asks for the classification of an object, but not of every one: it does not report the service
+                # principals of Microsoft first-party applications. Only the objects it lists are sent there.
+                $classification = @($findingSet.Rules | Where-Object { $_.RuleId -eq 'EO.2001' }) | Select-Object -First 1
+                $listedIds = @(@($classification.Results) + @($classification.AcceptedResults) | Where-Object { $_ } | ForEach-Object { [string]$_.Instance.ObjectId })
+                $notListed = if ($listedIds.Count) { @($unclassifiedIds | Where-Object { $_ -notin $listedIds }).Count } else { 0 }
+                $toClassify = $unclassifiedIds.Count - $notListed
+                $hint = if ($toClassify -gt 0) { "classify $(if ($notListed) { "the $toClassify that MP.EOPS.2001 reports first" } elseif ($toClassify -eq 1) { 'this object first (MP.EOPS.2001)' } else { 'these objects first (MP.EOPS.2001)' }), as $(if ($toClassify -eq 1 -and -not $notListed) { 'its tier decides what applies to it' } else { 'their tier decides what applies to them' })." } else { '' }
+                if ($notListed) { $hint = "$hint $(if ($toClassify -gt 0) { "The other $(if ($notListed -eq 1) { 'one' } else { $notListed })" } else { $(if ($notListed -eq 1) { 'It' } else { 'They' }) }) $(if ($notListed -eq 1) { 'is' } else { 'are' }) not reported by MP.EOPS.2001 (for example service principals of Microsoft first-party applications, which Microsoft operates): review $(if ($notListed -eq 1) { 'its' } else { 'their' }) access instead.".Trim() }
+                $summary.Add("❔ $(if ($results.Count -eq 1) { 'It is' } elseif ($onUnclassified.Count -eq $results.Count) { 'All of them are' } else { "$($onUnclassified.Count) of them $(if ($onUnclassified.Count -eq 1) { 'is' } else { 'are' })" }) on $(Get-EntraOpsPackCountText $unclassifiedIds.Count 'unclassified object'), listed last$(if ($toClassify -gt 0) { ': ' } else { '. ' })$hint")
             }
             if ($investigate) { $summary.Add('💡 This check asks for a review: confirm that each of them is intended, and change or accept (finding exception) the others.') }
             $accepted = Get-EntraOpsPackAcceptedFinding -Rule $rule
             if ($accepted.RiskAcceptedCount -gt 0) { $summary.Add("⚖️ $(Get-EntraOpsPackCountText $accepted.RiskAcceptedCount 'more instance') $(if ($accepted.RiskAcceptedCount -eq 1) { 'is' } else { 'are' }) risk accepted in the EntraOps finding exceptions and listed apart: $($accepted.RiskAccepted -join '; ').") }
             if ($accepted.DismissedCount -gt 0) { $summary.Add("✔️ $(Get-EntraOpsPackCountText $accepted.DismissedCount 'more instance') $(if ($accepted.DismissedCount -eq 1) { 'is' } else { 'are' }) dismissed as false positives in the EntraOps finding exceptions and listed apart.") }
             $unclassified = @($rule.UnclassifiedResults | Where-Object { $_ })
-            if ([int]$rule.UnclassifiedCount -gt 0) { $summary.Add("❔ $(Get-EntraOpsPackCountText ([int]$rule.UnclassifiedCount) 'more instance') of unclassified objects $(if ([int]$rule.UnclassifiedCount -eq 1) { 'is' } else { 'are' }) not counted$(if ($unclassified.Count) { ' and listed apart' }): classify these objects (EO.2001) to evaluate them.") }
+            if ([int]$rule.UnclassifiedCount -gt 0) { $summary.Add("❔ $(Get-EntraOpsPackCountText ([int]$rule.UnclassifiedCount) 'more instance') of unclassified objects $(if ([int]$rule.UnclassifiedCount -eq 1) { 'is' } else { 'are' }) not counted$(if ($unclassified.Count) { ' and listed apart' }): classify these objects (MP.EOPS.2001) to evaluate them.") }
             if ($note) { $summary.Add("📝 $note") }
             foreach ($line in $context) { $summary.Add($line) }
             $lines.Add($summary -join "`n`n")
@@ -1495,7 +1555,7 @@ function Test-EntraOpsPackFinding {
             }
             if ($unclassified.Count) {
                 $lines.Add('')
-                $lines.Add('**❔ Unclassified objects** (not counted: classify them, see EO.2001)')
+                $lines.Add('**❔ Unclassified objects** (not counted: classify them, see MP.EOPS.2001)')
                 $lines.Add('')
                 foreach ($line in (ConvertTo-EntraOpsPackResultTable -Rule $rule -Results $unclassified -ReportBase $reportBase -PortalUrl $portalUrl -MaxRows $MaxRows -ByObject)) { $lines.Add($line) }
             }

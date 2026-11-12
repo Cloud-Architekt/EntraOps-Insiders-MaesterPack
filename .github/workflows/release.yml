@@ -2,7 +2,8 @@ name: Release
 
 # Checks every push to main and, once the Actions variable PACK_RELEASES is true, releases the version of the
 # pack when it has no release yet: tags the commit v<Version> and publishes the release with the section of the
-# version in CHANGELOG.md as its notes.
+# version in CHANGELOG.md as its notes. The repository is private: Install-MtPack and Restore-MtPack read the
+# release only with a token that can read this repository (GH_TOKEN), so only people with access install the pack.
 on:
   push:
     branches:
@@ -55,15 +56,23 @@ jobs:
           if ($source.LocalChanges -ne $false) { throw "The pack was generated from local EntraOps changes (LocalChanges in entraops-source.json). Run Sync from EntraOps for an EntraOps tag or commit." }
           if ($manifest.Homepage -ne "https://github.com/$env:GITHUB_REPOSITORY") { throw "The links of the pack point to $($manifest.Homepage), not to this repository. Run Set-EntraOpsPackRepository (tools/)." }
 
-          # The links of the tests and the manifest must open: the Docs button of every test (this repository must be
-          # public), the EntraOps rule catalog and the EntraOps documentation (EntraOps is released first). Links
-          # of other sites only warn, as a site can refuse a request of a runner.
+          # The repository is private: only people with access to it can install the pack and open its links. The
+          # links into this repository (the Docs button of every test) must name a file of this commit; GitHub
+          # answers 404 to anyone without access, so they are not requested. The other links (the EntraOps rule
+          # catalog and documentation) open once EntraOps publishes this version, so they only warn.
+          $repositoryUrl = "https://github.com/$env:GITHUB_REPOSITORY"
           $links = @(
               Get-ChildItem -LiteralPath tests -Filter '*.md' | Get-Content -Raw | ForEach-Object { [regex]::Matches($_, '\]\((https://[^)\s]+)\)') | ForEach-Object { $_.Groups[1].Value } }
               Get-ChildItem -LiteralPath tests -Filter '*.ps1' | Get-Content -Raw | ForEach-Object { [regex]::Matches($_, "HelpUrl\s*=\s*'(https://[^']+)'") | ForEach-Object { $_.Groups[1].Value } }
               $manifest.Homepage, $manifest.Support, $manifest.SecurityContact
           ) | Where-Object { $_ } | ForEach-Object { ($_ -split '#')[0] } | Sort-Object -Unique
-          $dead = @(foreach ($link in $links) {
+          $missing = @(foreach ($link in $links) {
+              if (-not $link.StartsWith("$repositoryUrl/", [System.StringComparison]::OrdinalIgnoreCase) -and $link -ne $repositoryUrl) { continue }
+              $file = [regex]::Match($link, '^https://github\.com/[^/]+/[^/]+/blob/[^/]+/(.+)$')
+              if ($file.Success -and -not (Test-Path -LiteralPath ([uri]::UnescapeDataString($file.Groups[1].Value)) -PathType Leaf)) { $link }
+          })
+          if ($missing.Count) { throw "These links of the pack name files that this commit does not have: $($missing -join ', ')." }
+          foreach ($link in @($links | Where-Object { -not $_.StartsWith($repositoryUrl, [System.StringComparison]::OrdinalIgnoreCase) })) {
               $status = 0
               foreach ($attempt in 1..3) {
                   try { $status = [int](Invoke-WebRequest -Uri $link -Method Get -MaximumRedirection 5 -TimeoutSec 30 -SkipHttpErrorCheck -UserAgent 'Mozilla/5.0 (EntraOps Maester Pack release check)').StatusCode } catch { $status = 0 }
@@ -71,15 +80,12 @@ jobs:
                   if ($status -ne 0 -and $status -ne 429 -and $status -lt 500) { break }
                   Start-Sleep -Seconds (5 * $attempt)
               }
-              if ($status -ne 200) {
-                  if ($link -match '^https://(github\.com/|www\.entraops\.com/)') { "$link ($status)" } else { Write-Warning "The link $link answered $status." }
-              }
-          })
-          if ($dead.Count) { throw "These links of the pack do not open: $($dead -join ', '). Publish EntraOps and its documentation first, and make this repository public." }
+              if ($status -ne 200) { Write-Warning "The link $link answered $status. It opens once EntraOps publishes this version." }
+          }
           # The sections that the tests link in the EntraOps documentation, which renders them from data/content.js.
-          $docs = (Invoke-WebRequest -Uri 'https://www.entraops.com/docs/data/content.js' -TimeoutSec 30).Content
+          $docs = try { (Invoke-WebRequest -Uri 'https://www.entraops.com/docs/data/content.js' -TimeoutSec 30).Content } catch { '' }
           foreach ($anchor in 'findings', 'finding-exceptions') {
-              if ($docs -notmatch "\{#$anchor\}") { throw "The EntraOps documentation has no section '#$anchor' yet (https://www.entraops.com/docs/reportings/index.html). Publish the documentation of this EntraOps version first." }
+              if ($docs -notmatch "\{#$anchor\}") { Write-Warning "The EntraOps documentation has no section '#$anchor' yet (https://www.entraops.com/docs/reportings/index.html): the links of the tests to it open once the documentation of this EntraOps version is published." }
           }
 
           $changelog = Get-Content -LiteralPath CHANGELOG.md -Raw

@@ -4,7 +4,7 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 
 ## Summary
 
-**57 tests**
+**58 tests**
 
 | Severity | Tests |
 |---|---|
@@ -12,12 +12,12 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | High | 23 |
 | Medium | 26 |
 | Low | 1 |
-| Info | 6 |
+| Info | 7 |
 
 | Category | Tests |
 |---|---|
 | Tier boundaries | 10 |
-| Classification | 4 |
+| Classification | 5 |
 | Just-in-time access | 14 |
 | Account protection | 10 |
 | Workload and agent identities | 5 |
@@ -43,7 +43,8 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | [MP.EOPS.2002](tests/Test.MP.EOPS.2002.md) | Privileged role assignments are classified in a tier of the Enterprise Access Model. | Medium | Classification |
 | [MP.EOPS.2003](tests/Test.MP.EOPS.2003.md) | PIM activation approvers can be resolved against the Privileged EAM data. | Medium | Classification |
 | [MP.EOPS.2004](tests/Test.MP.EOPS.2004.md) | Custom roles with Control Plane permissions should be investigated. | Info | Classification |
-| [MP.EOPS.3001](tests/Test.MP.EOPS.3001.md) | Control Plane roles are assigned to users only as eligible. | High | Just-in-time access |
+| [MP.EOPS.2005](tests/Test.MP.EOPS.2005.md) | Access package target groups without role assignments have a declared tier. | Info | Classification |
+| [MP.EOPS.3001](tests/Test.MP.EOPS.3001.md) | Control Plane roles of Entra ID and Azure are assigned to users only as eligible. | High | Just-in-time access |
 | [MP.EOPS.3002](tests/Test.MP.EOPS.3002.md) | Memberships in groups with Control Plane access are eligible. | High | Just-in-time access |
 | [MP.EOPS.3003](tests/Test.MP.EOPS.3003.md) | No Control or Management Plane Azure role is assigned permanently at the root scope. | High | Just-in-time access |
 | [MP.EOPS.3004](tests/Test.MP.EOPS.3004.md) | No permanent eligible assignment is allowed for Control and Management Plane roles. | Medium | Just-in-time access |

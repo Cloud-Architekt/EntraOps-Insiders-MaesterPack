@@ -8,7 +8,7 @@ body:
     attributes:
       value: |
         Search existing issues before proposing a feature. Do not include credentials, tokens, or unredacted tenant data.
-        A new check or a change of what a check evaluates is an EntraOps finding rule: propose it in [EntraOps](https://github.com/Cloud-Architekt/EntraOps/issues).
+        A new check or a change of what a check evaluates is an EntraOps finding rule: propose it here, and the maintainers take it to EntraOps.
   - type: textarea
     id: problem
     attributes:

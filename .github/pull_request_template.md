@@ -15,4 +15,4 @@ List the checks of the pack (`ci/PackChecks.ps1`) and the manual validation perf
 - [ ] I updated `README.md`, `TESTS.md` or `maester-pack.guide.json`, or confirmed that this change does not require documentation.
 - [ ] I updated `CHANGELOG.md` when this change is release-relevant.
 - [ ] I removed secrets, tokens, personal data, and tenant-sensitive data (including `findings.json` and Maester reports) from this pull request.
-- [ ] I followed `SECURITY.md` for vulnerabilities instead of disclosing them publicly.
+- [ ] I followed `SECURITY.md` for vulnerabilities instead of disclosing them in a pull request or issue.

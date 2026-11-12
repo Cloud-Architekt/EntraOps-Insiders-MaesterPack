@@ -1,6 +1,6 @@
 # Contributing to the EntraOps Maester Pack
 
-Contributions are welcome through GitHub issues and pull requests. For defects, include the pack version, the
+This repository is private: contributions come from people with access, through its issues and pull requests. For defects, include the pack version, the
 EntraOps version that wrote `findings.json`, the Maester and PowerShell versions, the sanitized test result and
 the steps to reproduce it. Do not include tenant secrets, access tokens, unredacted `findings.json` files or
 other sensitive tenant data.
@@ -9,7 +9,7 @@ other sensitive tenant data.
 
 EntraOps evaluates the checks, and most of this repository is generated from the EntraOps finding rule catalog
 by `Build-EntraOpsMaesterPack.ps1`. A change to a generated file here is overwritten by the next build, so it
-belongs in [EntraOps](https://github.com/Cloud-Architekt/EntraOps):
+belongs in EntraOps, in the [EntraOps Insiders repository](https://github.com/Cloud-Architekt/entraops-insiders) that the pack is generated from:
 
 | Change | Where |
 | --- | --- |
@@ -43,4 +43,4 @@ artifacts unless their license permits redistribution and required notices are i
 
 - Update [CHANGELOG.md](./CHANGELOG.md) (the section of the next version) for user-facing changes, and
   [TESTS.md](./TESTS.md) when the tests change.
-- Follow [SECURITY.md](./SECURITY.md) for vulnerabilities; do not disclose them in a public pull request or issue.
+- Follow [SECURITY.md](./SECURITY.md) for vulnerabilities; do not disclose them in a pull request or issue.
