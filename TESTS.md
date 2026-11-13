@@ -73,12 +73,12 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | [MP.EOPS.5003](tests/Test.MP.EOPS.5003.md) | Agent identities and agent users have a sponsor. | Medium | Workload and agent identities |
 | [MP.EOPS.5004](tests/Test.MP.EOPS.5004.md) | Workload identities with Control Plane access should be investigated. | Info | Workload and agent identities |
 | [MP.EOPS.5005](tests/Test.MP.EOPS.5005.md) | Delegated permissions classified as Control Plane should be investigated. | Info | Workload and agent identities |
-| [MP.EOPS.6001](tests/Test.MP.EOPS.6001.md) | Access packages for Control and Management Plane resources require approval. | High | Access governance |
-| [MP.EOPS.6002](tests/Test.MP.EOPS.6002.md) | Access packages for Control and Management Plane resources cannot be requested by all users. | High | Access governance |
+| [MP.EOPS.6001](tests/Test.MP.EOPS.6001.md) | Access package assignment policies for Control and Management Plane resources require approval. | High | Access governance |
+| [MP.EOPS.6002](tests/Test.MP.EOPS.6002.md) | Access package assignment policies for Control and Management Plane resources cannot be requested by all users. | High | Access governance |
 | [MP.EOPS.6003](tests/Test.MP.EOPS.6003.md) | Control and Management Plane access package resources have no members outside their access packages. | High | Access governance |
 | [MP.EOPS.6004](tests/Test.MP.EOPS.6004.md) | Access package assignments of Control and Management Plane resources are applied to their resources. | Medium | Access governance |
-| [MP.EOPS.6005](tests/Test.MP.EOPS.6005.md) | Access package assignments of Control and Management Plane resources expire. | Medium | Access governance |
-| [MP.EOPS.6006](tests/Test.MP.EOPS.6006.md) | Access packages of Control and Management Plane resources have access reviews. | Medium | Access governance |
+| [MP.EOPS.6005](tests/Test.MP.EOPS.6005.md) | Access package assignment policies for Control and Management Plane resources let assignments expire. | Medium | Access governance |
+| [MP.EOPS.6006](tests/Test.MP.EOPS.6006.md) | Access package assignment policies for Control and Management Plane resources have access reviews. | Medium | Access governance |
 | [MP.EOPS.7001](tests/Test.MP.EOPS.7001.md) | Service principals and applications with Control or Management Plane access have no owners. | High | Ownership and delegation |
 | [MP.EOPS.7002](tests/Test.MP.EOPS.7002.md) | Groups with Control or Management Plane access have no owners. | High | Ownership and delegation |
 | [MP.EOPS.7003](tests/Test.MP.EOPS.7003.md) | User Access Administrator and Role Based Access Control Administrator assignments are constrained by conditions. | High | Ownership and delegation |

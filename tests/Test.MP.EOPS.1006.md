@@ -20,7 +20,7 @@ A finding that is a false positive, or whose risk is accepted until a date, is a
 
 - [Restricted management administrative units](https://learn.microsoft.com/entra/identity/role-based-access-control/admin-units-restricted-management)
 - [Assign Microsoft Entra roles with administrative unit scope](https://learn.microsoft.com/entra/identity/role-based-access-control/admin-units-assign-roles)
-- [Privileged roles and permissions (who can reset passwords)](https://learn.microsoft.com/entra/identity/role-based-access-control/privileged-roles-permissions)
+- [Privileged roles and permissions (who can reset passwords)](https://learn.microsoft.com/entra/identity/role-based-access-control/privileged-roles-permissions#who-can-reset-passwords)
 - [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
 - [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
 - [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)

@@ -1,4 +1,4 @@
-**Fails when:** The PIM setting of a Control or Management Plane role allows active assignments without expiration (the default of Entra ID roles). Administrators can then grant standing access to the role that bypasses activation, MFA and approval.
+**Fails when:** The PIM setting of a Control or Management Plane role allows active assignments without expiration (the default of Entra ID roles). Administrators can then grant standing access to the role that bypasses activation, MFA and approval. The tier of a role is the most privileged of its classification and of its current assignments, as the setting applies to every assignment of the role at any scope; only a role definition overwrite of the tenant can lower it. The PIM settings of Microsoft Entra roles are evaluated; those of Azure roles and PIM for Groups are not.
 
 EntraOps evaluates this rule as EO.3005 (PimRequestFlow.permanentActive). The EntraOps reports show the same result as the finding 'Permanent active assignment allowed for privileged role'.
 

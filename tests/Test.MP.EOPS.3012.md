@@ -1,4 +1,4 @@
-**Fails when:** Eligible assignments of a Control or Management Plane role can last longer than the configured maximum (Findings.EligibleAssignmentMaxDays, default 365 days) before they expire. Long-lived eligibility is rarely reconsidered. Roles that allow permanent eligible assignments are reported by EO.3004.
+**Fails when:** Eligible assignments of a Control or Management Plane role can last longer than the configured maximum (Findings.EligibleAssignmentMaxDays, default 365 days) before they expire. Long-lived eligibility is rarely reconsidered. Roles that allow permanent eligible assignments are reported by EO.3004. The tier of a role is the most privileged of its classification and of its current assignments, as the setting applies to every assignment of the role at any scope; only a role definition overwrite of the tenant can lower it. The PIM settings of Microsoft Entra roles are evaluated; those of Azure roles and PIM for Groups are not.
 
 EntraOps evaluates this rule as EO.3012 (TenantGovernance.eligibleAssignmentDuration). The EntraOps reports show the same result as the finding 'Long eligible assignment of a privileged role'.
 
