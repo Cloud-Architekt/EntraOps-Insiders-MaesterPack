@@ -1500,7 +1500,7 @@ function Test-EntraOpsPackFinding {
     # A setting EntraOps.ReportsPath without the reports: the results say why they have no report links.
     $reportsNote = if ($null -ne $findingSet.PSObject.Properties['ReportsNote'] -and $findingSet.ReportsNote) { "📝 $(ConvertTo-EntraOpsPackMarkdownCell $findingSet.ReportsNote)" }
     # Principals of the Global Exclusion List of EntraOps (Classification/Global.json) are not in the Privileged EAM data,
-    # so the rules that evaluate it do not cover their privileged access (results of EntraOps 1.2.1 and later name them).
+    # so the rules that evaluate it do not cover their privileged access (results of EntraOps 1.2.0 and later name them).
     $exclusionCount = if ($null -ne $findingSet.PSObject.Properties['GlobalExclusions'] -and $null -ne $findingSet.GlobalExclusions) { [int]$findingSet.GlobalExclusions.Count } else { 0 }
     $exclusionNote = if ($exclusionCount -gt 0 -and "$($rule.Area)" -in 'TierBreach', 'PrivilegedAssets', 'PrivilegedEAM', 'PrivilegeHistory') {
         "ℹ️ $(Get-EntraOpsPackCountText -Count $exclusionCount -Noun 'principal') of the Global Exclusion List of EntraOps ($($findingSet.GlobalExclusions.FilePath)) $(if ($exclusionCount -eq 1) { 'is' } else { 'are' }) not in the Privileged EAM data, so this check does not cover $(if ($exclusionCount -eq 1) { 'its' } else { 'their' }) privileged access."
