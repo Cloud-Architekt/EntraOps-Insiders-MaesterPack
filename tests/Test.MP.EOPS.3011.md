@@ -1,4 +1,4 @@
-**Fails when:** The PIM setting requires an authentication context on activation, but no context is selected (neither its name nor its ID is in the snapshot), so the requirement has no effect.
+**Fails when:** The PIM setting requires an authentication context on activation, but no context is selected (neither its name nor its ID is in the snapshot), so the requirement has no effect. The PIM settings of Microsoft Entra roles are evaluated; those of Azure roles and PIM for Groups are not.
 
 EntraOps evaluates this rule as EO.3011 (PimRequestFlow.authContextMissing). The EntraOps reports show the same result as the finding 'Authentication context required but not configured'.
 

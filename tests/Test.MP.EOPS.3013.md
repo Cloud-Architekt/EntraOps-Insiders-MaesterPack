@@ -1,4 +1,4 @@
-**Fails when:** Activations of a Control Plane role can last longer than the configured maximum (Findings.ControlPlaneActivationMaxHours, default 4 hours; the PIM default is 8 hours). The longer an activation lasts, the longer a stolen session or token holds Control Plane access.
+**Fails when:** Activations of a Control Plane role can last longer than the configured maximum (Findings.ControlPlaneActivationMaxHours, default 4 hours; the PIM default is 8 hours). The longer an activation lasts, the longer a stolen session or token holds Control Plane access. The tier of a role is the most privileged of its classification and of its current assignments, as the setting applies to every assignment of the role at any scope; only a role definition overwrite of the tenant can lower it. The PIM settings of Microsoft Entra roles are evaluated; those of Azure roles and PIM for Groups are not.
 
 EntraOps evaluates this rule as EO.3013 (TenantGovernance.controlPlaneActivationDuration). The EntraOps reports show the same result as the finding 'Long Control Plane role activation'.
 

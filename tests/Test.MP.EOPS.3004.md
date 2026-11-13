@@ -1,4 +1,4 @@
-**Fails when:** The PIM setting of a Control or Management Plane role allows eligible assignments without expiration (the default of Entra ID roles). Eligibility that never expires is never reconsidered and stays when people change jobs.
+**Fails when:** The PIM setting of a Control or Management Plane role allows eligible assignments without expiration (the default of Entra ID roles). Eligibility that never expires is never reconsidered and stays when people change jobs. The tier of a role is the most privileged of its classification and of its current assignments, as the setting applies to every assignment of the role at any scope; only a role definition overwrite of the tenant can lower it. The PIM settings of Microsoft Entra roles are evaluated; those of Azure roles and PIM for Groups are not.
 
 EntraOps evaluates this rule as EO.3004 (PimRequestFlow.permanentEligible). The EntraOps reports show the same result as the finding 'Permanent eligible assignment allowed for privileged role'.
 

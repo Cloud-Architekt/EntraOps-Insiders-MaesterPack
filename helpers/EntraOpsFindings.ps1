@@ -142,6 +142,9 @@ function Get-EntraOpsPackFindingSet {
         Skip-EntraOpsPackTest "The EntraOps finding results at $path are for tenant $($findingSet.TenantId), but Maester is connected to tenant $($context.TenantId)."
         return
     }
+    if ($context -and $context.TenantId -and -not "$($findingSet.TenantId)") {
+        Write-EntraOpsPackWarning "EntraOps Maester Pack: the EntraOps finding results at $path have no tenant ID, so the pack cannot check that they belong to tenant $($context.TenantId). Set TenantId in EntraOpsConfig.json and create the results again."
+    }
 
     $maxAgeSetting = Get-MtSetting -Name 'EntraOps.MaxFindingsAgeDays' -Default 7
     $maxAgeDays = 0
@@ -1294,6 +1297,52 @@ function Add-EntraOpsPackAffectedObject {
     $graphObjects
 }
 
+function Update-EntraOpsPackExpiredAcceptance {
+    <#
+    .SYNOPSIS
+    Reopens the accepted instances whose finding exception expired after EntraOps evaluated the rule.
+
+    .DESCRIPTION
+    findings.json keeps the exceptions as they were on the day of the evaluation. An exception that expired since
+    then (ExpiresOn before today, UTC, like the evaluation in EntraOps and the EntraOps reports) no longer accepts
+    its instance: the instance counts as open, the rule as failed, and the reason names the expired exceptions.
+    Returns a copy of the rule; the cached results stay unchanged.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [object] $Rule
+    )
+
+    if ("$($Rule.Status)" -notin 'Passed', 'Failed') { return $Rule }
+    $today = (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture)
+    $accepted = @($Rule.AcceptedResults | Where-Object { $null -ne $_ })
+    $expired = @($accepted | Where-Object {
+            $expiresOn = $_.Exception.ExpiresOn
+            # A date that ConvertFrom-Json read as local time is the UTC date of the file (like the evaluation in EntraOps).
+            $date = if ($expiresOn -is [datetime]) { $(if ($expiresOn.Kind -eq [System.DateTimeKind]::Local) { $expiresOn.ToUniversalTime() } else { $expiresOn }).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture) } else { "$expiresOn" }
+            $date.Length -ge 10 -and $date.Substring(0, 10) -match '^\d{4}-\d{2}-\d{2}$' -and [string]::CompareOrdinal($date.Substring(0, 10), $today) -lt 0
+        })
+    if ($expired.Count -eq 0) { return $Rule }
+
+    $copy = $Rule.PSObject.Copy()
+    $names = @($expired | ForEach-Object {
+            $name = if ($_.Instance.DisplayName) { $_.Instance.DisplayName } elseif ($_.Instance.ObjectId) { $_.Instance.ObjectId } else { $_.Instance.Id }
+            $value = $_.Exception.ExpiresOn
+            $expiresOn = if ($value -is [datetime]) { $(if ($value.Kind -eq [System.DateTimeKind]::Local) { $value.ToUniversalTime() } else { $value }).ToString('yyyy-MM-dd', [cultureinfo]::InvariantCulture) } else { "$value".Substring(0, 10) }
+            "$name (expired $expiresOn)"
+        })
+    $note = "$($expired.Count) finding exception(s) expired after the evaluation, so their instances are open again: $(($names | Select-Object -First 10) -join ', ')$(if ($names.Count -gt 10) { " and $($names.Count - 10) more" }). Renew or remove the exceptions in the EntraOps Finding Exceptions File."
+    $copy | Add-Member -NotePropertyName AcceptedResults -NotePropertyValue @($accepted | Where-Object { $expired -notcontains $_ }) -Force
+    $copy | Add-Member -NotePropertyName AcceptedCount -NotePropertyValue ([Math]::Max(0, [int]$Rule.AcceptedCount - $expired.Count)) -Force
+    $copy | Add-Member -NotePropertyName Results -NotePropertyValue @(@($Rule.Results | Where-Object { $null -ne $_ }) + $expired) -Force
+    $copy | Add-Member -NotePropertyName FailedCount -NotePropertyValue ([int]$Rule.FailedCount + $expired.Count) -Force
+    $copy | Add-Member -NotePropertyName Status -NotePropertyValue 'Failed' -Force
+    $copy | Add-Member -NotePropertyName Reason -NotePropertyValue $(if ("$($Rule.Reason)") { "$note $($Rule.Reason)" } else { $note }) -Force
+    if ($null -eq $copy.PSObject.Properties['ReasonCode'] -or -not $copy.ReasonCode) { $copy | Add-Member -NotePropertyName ReasonCode -NotePropertyValue 'Note' -Force }
+    $copy
+}
+
 function Get-EntraOpsPackAcceptedFinding {
     <#
     .SYNOPSIS
@@ -1432,6 +1481,8 @@ function Test-EntraOpsPackFinding {
         Add-MtTestResultDetail -SkippedBecause Custom -SkippedCustomReason "The EntraOps finding results have no result for rule $RuleId. The rule may be evaluated by a newer EntraOps version than the one that wrote the results."
         return
     }
+    # Exceptions that expired since the evaluation no longer accept their instances.
+    $rule = Update-EntraOpsPackExpiredAcceptance -Rule $rule
 
     # The tenant of the results: Maester compares it only while Microsoft Graph is connected (not with -SkipGraphConnect).
     $tenant = if ($findingSet.TenantName) { [string]$findingSet.TenantName } elseif ($findingSet.TenantId) { [string]$findingSet.TenantId } else { $null }
@@ -1448,7 +1499,13 @@ function Test-EntraOpsPackFinding {
     $findingsView = if ($reportBase) { "🔎 [Open $RuleId in the EntraOps Findings view]($($reportBase)PrivilegedAssets/index.html?view=findings#rule=$([uri]::EscapeDataString($RuleId)))" } else { $null }
     # A setting EntraOps.ReportsPath without the reports: the results say why they have no report links.
     $reportsNote = if ($null -ne $findingSet.PSObject.Properties['ReportsNote'] -and $findingSet.ReportsNote) { "📝 $(ConvertTo-EntraOpsPackMarkdownCell $findingSet.ReportsNote)" }
-    $footer = (@($findingsView, $reportsNote, "_$($source)_") | Where-Object { $_ }) -join "`n`n"
+    # Principals of the Global Exclusion List of EntraOps (Classification/Global.json) are not in the Privileged EAM data,
+    # so the rules that evaluate it do not cover their privileged access (results of EntraOps 1.2.1 and later name them).
+    $exclusionCount = if ($null -ne $findingSet.PSObject.Properties['GlobalExclusions'] -and $null -ne $findingSet.GlobalExclusions) { [int]$findingSet.GlobalExclusions.Count } else { 0 }
+    $exclusionNote = if ($exclusionCount -gt 0 -and "$($rule.Area)" -in 'TierBreach', 'PrivilegedAssets', 'PrivilegedEAM', 'PrivilegeHistory') {
+        "ℹ️ $(Get-EntraOpsPackCountText -Count $exclusionCount -Noun 'principal') of the Global Exclusion List of EntraOps ($($findingSet.GlobalExclusions.FilePath)) $(if ($exclusionCount -eq 1) { 'is' } else { 'are' }) not in the Privileged EAM data, so this check does not cover $(if ($exclusionCount -eq 1) { 'its' } else { 'their' }) privileged access."
+    }
+    $footer = (@($exclusionNote, $findingsView, $reportsNote, "_$($source)_") | Where-Object { $_ }) -join "`n`n"
     # The settings EntraOps evaluated the rule with, and what its finding exceptions need.
     $context = @(@(Get-EntraOpsPackRuleSettingText -Rule $rule) + @(Get-EntraOpsPackExceptionText -Rule $rule) | Where-Object { $_ })
     $contextText = if ($context.Count) { "`n`n" + ($context -join "`n`n") } else { '' }

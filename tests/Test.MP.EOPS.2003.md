@@ -1,4 +1,4 @@
-**Fails when:** Activation of this privileged role requires approval, but an approver could not be resolved against the Privileged EAM data, for example a guest, a user without privileged access or a group that EntraOps does not collect. Its tier cannot be compared with the role, so a lower-tier approver can go unnoticed.
+**Fails when:** Activation of this privileged role requires approval, but an approver could not be resolved against the Privileged EAM data: a group that EntraOps does not collect, a group without member data, a group without members or a display name of several objects. An approver named by a user principal name outside the Privileged EAM data is a user without privileged access and is compared as User Access (EO.1008). Its tier cannot be compared with the role, so a lower-tier approver can go unnoticed.
 
 EntraOps evaluates this rule as EO.2003 (PimRequestFlow.approverUnclassified). The EntraOps reports show the same result as the finding 'Activation approver not resolved'.
 

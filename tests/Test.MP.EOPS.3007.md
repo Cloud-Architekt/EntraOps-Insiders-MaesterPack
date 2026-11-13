@@ -1,4 +1,4 @@
-**Fails when:** A Control or Management Plane role can be activated without approval. Every eligible user, and an attacker in control of such an account, can activate the role alone. With approval turned on but no approvers selected, the Privileged Role Administrators approve.
+**Fails when:** A Control or Management Plane role can be activated without approval. Every eligible user, and an attacker in control of such an account, can activate the role alone. With approval turned on but no approvers selected, the Privileged Role Administrators approve. The tier of a role is the most privileged of its classification and of its current assignments, as the setting applies to every assignment of the role at any scope; only a role definition overwrite of the tenant can lower it. The PIM settings of Microsoft Entra roles are evaluated; those of Azure roles and PIM for Groups are not.
 
 EntraOps evaluates this rule as EO.3007 (PimRequestFlow.noApprovalActivation). The EntraOps reports show the same result as the finding 'Privileged role can be activated without approval'.
 
