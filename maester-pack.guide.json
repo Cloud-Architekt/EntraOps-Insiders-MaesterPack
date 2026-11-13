@@ -67,7 +67,7 @@
       {
         "Name": "EntraOpsConfig.json: Findings.EmergencyAccessAccounts",
         "Default": "None",
-        "Text": "Set this first: without it, the Conditional Access policies that exclude your emergency access accounts or their group fail MP.EOPS.4003 (EntraOps takes groups for emergency access accounts only when they are listed here). Their permanent Control Plane role assignments still fail MP.EOPS.3001, as intended: accept them there as finding exceptions."
+        "Text": "Set this first, with the object IDs or user principal names of your emergency access accounts and their group: their permanent Control Plane role assignments are then not reported by MP.EOPS.3001, and Conditional Access policies that exclude them don't fail MP.EOPS.4003. Without it, MP.EOPS.4003 reports every excluded Control Plane user, and its reason names the users excluded from every enabled policy as candidates for the setting."
       },
       {
         "Name": "EntraOps Finding Exceptions File",

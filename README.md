@@ -345,7 +345,12 @@ To generate the pack locally from an EntraOps clone next to this repository:
 
 - Private repository: give read access to the people and pipelines that install the pack. Rulesets on a private
   repository need GitHub Pro, Team or Enterprise.
-- Release immutability on (Settings › General › Releases), so the install cooldown counts from the publication.
+- Release immutability off (Settings › General › Releases) while EntraOps 1.2.0 is not final, so a release can be
+  published again with fixes under the same version: delete it with its tag (`gh release delete v<Version>
+  --cleanup-tag`), then run **Release** again (it skips a version that has a release). Maester then counts the
+  install cooldown (72 hours) from when each computer first sees the content, not from the publication: install
+  with `-IncludeRecent`, or wait. `Update-MtPack` compares the files, so it offers the republished release to those
+  who installed the earlier one. Turn immutability on once the version is final.
 - The ruleset in `.github/rulesets/main.json` (import it under Settings › Rules › Rulesets): pull requests and
   the `check` status are required on `main`.
 - Actions › General: "Allow GitHub Actions to create and approve pull requests" on, for **Sync from EntraOps**.
