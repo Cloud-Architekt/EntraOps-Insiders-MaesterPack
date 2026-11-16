@@ -21,7 +21,7 @@ A finding that is a false positive, or whose risk is accepted until a date, is a
 - [accessPackageAssignmentPolicy resource](https://learn.microsoft.com/graph/api/resources/accesspackageassignmentpolicy)
 - [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
 - [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
-- [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)
+- [EntraOps finding rules](https://github.com/Cloud-Architekt/entraops-insiders/blob/main/EntraOps/Private/Findings/FindingRules.json)
 
 <!--- Results --->
 %TestResult%

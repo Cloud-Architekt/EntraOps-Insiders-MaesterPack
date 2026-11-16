@@ -1158,7 +1158,7 @@ function ConvertTo-EntraOpsPackAcceptedTable {
 function Get-EntraOpsPackRuleSettingText {
     <#
     .SYNOPSIS
-    The settings of a rule that EntraOps evaluated it with (Parameters, from the Findings section of EntraOpsConfig.json), as one line, or nothing.
+    The settings of a rule that EntraOps evaluated it with (Parameters, from EntraOpsConfig.json: the Findings section, or the root for ManagingTenantId and ManagingTenantName), as one line, or nothing.
     #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -1169,11 +1169,11 @@ function Get-EntraOpsPackRuleSettingText {
 
     if ($null -eq $Rule.Parameters) { return $null }
     $settings = @($Rule.Parameters.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' } | ForEach-Object {
-            $value = if ($_.Value -is [System.Collections.IEnumerable] -and $_.Value -isnot [string]) { $(if (@($_.Value).Count) { @($_.Value) -join ', ' } else { 'none' }) } else { [string]$_.Value }
+            $value = if ($_.Value -is [System.Collections.IEnumerable] -and $_.Value -isnot [string]) { $(if (@($_.Value).Count) { @($_.Value) -join ', ' } else { 'none' }) } elseif ([string]::IsNullOrWhiteSpace([string]$_.Value)) { 'none' } else { [string]$_.Value }
             "$($_.Name): $value"
         })
     if (-not $settings.Count) { return $null }
-    '🔧 ' + (ConvertTo-EntraOpsPackMarkdownCell "EntraOps settings of this check (Findings in EntraOpsConfig.json): $($settings -join '; ').")
+    '🔧 ' + (ConvertTo-EntraOpsPackMarkdownCell "EntraOps settings of this check (EntraOpsConfig.json): $($settings -join '; ').")
 }
 
 function Get-EntraOpsPackCountText {
