@@ -4,12 +4,12 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 
 ## Summary
 
-**58 tests**
+**59 tests**
 
 | Severity | Tests |
 |---|---|
 | Critical | 1 |
-| High | 23 |
+| High | 24 |
 | Medium | 26 |
 | Low | 1 |
 | Info | 7 |
@@ -19,7 +19,7 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | Tier boundaries | 10 |
 | Classification | 5 |
 | Just-in-time access | 14 |
-| Account protection | 10 |
+| Account protection | 11 |
 | Workload and agent identities | 5 |
 | Access governance | 6 |
 | Ownership and delegation | 5 |
@@ -59,7 +59,7 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | [MP.EOPS.3013](tests/Test.MP.EOPS.3013.md) | Activations of Control Plane roles are limited to the configured maximum duration. | Medium | Just-in-time access |
 | [MP.EOPS.3014](tests/Test.MP.EOPS.3014.md) | Assignments and activations of Control and Management Plane roles alert administrators. | Medium | Just-in-time access |
 | [MP.EOPS.4001](tests/Test.MP.EOPS.4001.md) | No Control Plane object is synchronized from Active Directory. | High | Account protection |
-| [MP.EOPS.4002](tests/Test.MP.EOPS.4002.md) | No guest user has Control or Management Plane access. | High | Account protection |
+| [MP.EOPS.4002](tests/Test.MP.EOPS.4002.md) | No guest user has Control or Management Plane access, apart from the managing tenant. | High | Account protection |
 | [MP.EOPS.4003](tests/Test.MP.EOPS.4003.md) | Conditional Access policies do not exclude Control Plane users, groups or roles. | High | Account protection |
 | [MP.EOPS.4004](tests/Test.MP.EOPS.4004.md) | Groups with Control or Management Plane access are role-assignable or protected by a restricted management administrative unit. | High | Account protection |
 | [MP.EOPS.4005](tests/Test.MP.EOPS.4005.md) | Control, Management and Workload Plane users and groups are protected by restricted management. | Medium | Account protection |
@@ -67,8 +67,9 @@ All tests in [`tests/`](tests/). Severity and title come from each test's `[Maes
 | [MP.EOPS.4007](tests/Test.MP.EOPS.4007.md) | Control, Management and Workload Plane users own no devices other than their privileged access workstation. | Medium | Account protection |
 | [MP.EOPS.4008](tests/Test.MP.EOPS.4008.md) | Control Plane users have an associated privileged access workstation. | Medium | Account protection |
 | [MP.EOPS.4009](tests/Test.MP.EOPS.4009.md) | Control, Management and Workload Plane users are linked to a work account. | Low | Account protection |
-| [MP.EOPS.4010](tests/Test.MP.EOPS.4010.md) | Privileged objects from other tenants should be investigated. | Info | Account protection |
-| [MP.EOPS.5001](tests/Test.MP.EOPS.5001.md) | No service principal of another tenant has Control Plane access. | High | Workload and agent identities |
+| [MP.EOPS.4010](tests/Test.MP.EOPS.4010.md) | Role assignments of principals managed by other tenants should be investigated. | Info | Account protection |
+| [MP.EOPS.4011](tests/Test.MP.EOPS.4011.md) | No principal managed by another tenant has Control Plane access, apart from the managing tenant. | High | Account protection |
+| [MP.EOPS.5001](tests/Test.MP.EOPS.5001.md) | No service principal of another tenant has Control Plane access, apart from the managing tenant. | High | Workload and agent identities |
 | [MP.EOPS.5002](tests/Test.MP.EOPS.5002.md) | Agent identities have no Control or Management Plane access. | High | Workload and agent identities |
 | [MP.EOPS.5003](tests/Test.MP.EOPS.5003.md) | Agent identities and agent users have a sponsor. | Medium | Workload and agent identities |
 | [MP.EOPS.5004](tests/Test.MP.EOPS.5004.md) | Workload identities with Control Plane access should be investigated. | Info | Workload and agent identities |

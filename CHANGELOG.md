@@ -5,7 +5,7 @@ module it is generated from; the release workflow uses the section of a version 
 
 ## 1.2.0
 
-- First release of the EntraOps Maester Pack (code `EOPS`): 58 tests `MP.EOPS.<n>`, one per EntraOps
+- First release of the EntraOps Maester Pack (code `EOPS`): 59 tests `MP.EOPS.<n>`, one per EntraOps
   finding rule, in eight categories (tier boundaries, classification, just-in-time access, account protection,
   workload and agent identities, access governance, ownership and delegation, drift).
 - Internal pack: it is distributed only through its private GitHub repository. `Install-MtPack` and
@@ -13,6 +13,10 @@ module it is generated from; the release workflow uses the section of a version 
   Packs index, and Maester sends no install event for it.
 - `MP.EOPS.2005` (Investigate) reports access package target groups without role assignments and without a tier in
   the EntraOps Object Classification File, whose access the access package checks cannot compare.
+- `MP.EOPS.4011` (High) reports users and groups that another tenant manages (cross-tenant synchronization,
+  external members, Tenant Governance) with Control Plane access. `MP.EOPS.4010` lists every role assignment of
+  such principals. Principals of the managing tenant (`ManagingTenantId` in EntraOpsConfig.json) pass with a note
+  in `MP.EOPS.4002`, `MP.EOPS.4011` and `MP.EOPS.5001`.
 - The guide names `Findings.EmergencyAccessAccounts` of EntraOps as the first setting: without it, Conditional Access
   policies that exclude the emergency access accounts or their group fail `MP.EOPS.4003`.
 - `MP.EOPS.6003` (unauthorized access) and `MP.EOPS.6004` (missing access) report the access drift

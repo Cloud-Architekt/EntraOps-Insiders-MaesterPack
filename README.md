@@ -77,7 +77,7 @@ module (`Test-MtPack`: Low risk).
 
 ## Checks
 
-58 tests in eight categories. The first digit of the ID is the category, which is also a tag of the test
+59 tests in eight categories. The first digit of the ID is the category, which is also a tag of the test
 (`Invoke-Maester -Pack EOPS -Tag 'Just-in-time access'`).
 
 | IDs | Category | Checks |
