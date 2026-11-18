@@ -1,4 +1,4 @@
-**Fails when:** A user that is Control Plane, or holds Control Plane role assignments, has no associated privileged access workstation (by default the custom security attribute associatedSecureAdminWorkstation, with the device ID or the object ID of the device; a reference that matches no device counts as none). EntraOps cannot tie the account to a PAW, and Conditional Access device filters for PAWs cannot target it.
+**Fails when:** A user that is Control Plane, or holds Control Plane role assignments, has no associated privileged access workstation (by default the custom security attribute associatedSecureAdminWorkstation, with the device ID or the object ID of the device; a reference that matches no device counts as none). EntraOps cannot tie the account to a PAW, and Conditional Access device filters cannot restrict the account to its own PAW (a generic device filter, for example on a PAW extension attribute, does not need the association).
 
 EntraOps evaluates this rule as EO.4008 (PrivilegedAssets.pawMissing). The EntraOps reports show the same result as the finding 'No associated PAW'.
 

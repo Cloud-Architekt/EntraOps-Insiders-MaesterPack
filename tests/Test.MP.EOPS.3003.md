@@ -6,7 +6,7 @@ EntraOps evaluates this rule as EO.3003 (PrivilegedEAM.azureRootScopeAssignment)
 
 1. Assign the role at the lowest management group, subscription or resource group that is needed.
 2. For users and groups, make the assignment eligible in PIM for Azure resources.
-3. Service principals and managed identities cannot use PIM: scope their assignment down, and protect their credentials and owners.
+3. Service principals and managed identities cannot be eligible in PIM: scope their assignment down, and protect their credentials and owners.
 
 | Implementation effort | User impact |
 | --- | --- |

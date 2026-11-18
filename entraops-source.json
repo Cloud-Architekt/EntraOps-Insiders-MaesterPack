@@ -1,7 +1,7 @@
 {
   "Repository": "https://github.com/cloud-architekt/entraops-insiders",
   "Version": "1.2.0",
-  "Commit": "47985b267d5555c03bc24ee394dc489a5ef0aca0",
+  "Commit": "594e930c5fde782a3e2f14438f4b8dbe2ab6ab4f",
   "LocalChanges": false,
   "FindingsSchema": "1.x",
   "Rules": 59
