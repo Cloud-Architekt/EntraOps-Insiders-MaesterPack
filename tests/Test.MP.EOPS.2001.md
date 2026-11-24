@@ -5,7 +5,7 @@ EntraOps evaluates this rule as EO.2001 (PrivilegedAssets.unclassified). The Ent
 #### Remediation action
 
 1. Decide the tier from the role assignments of the object (AssignmentTierName in the evidence).
-2. Set it with the custom security attributes (by default adminTierLevel and adminTierLevelName, both consistently; users and service principals have their own attribute set names in EntraOpsConfig.json), the Object Classification File (also for groups, which have no custom security attributes) or an Alternate Tier Level Attribute. Applications take the tier of their service principal.
+2. Set it with the custom security attributes (by default adminTierLevel and adminTierLevelName, both consistently; users and service principals have their own attribute set names in EntraOpsConfig.json), the Object Classification File (also for groups, which have no custom security attributes) or an Alternate Tier Level Attribute. Applications take the tier of their service principal. An object of another tenant (a group or member with access through Tenant Governance, a remote group) has no custom security attributes of this tenant: use the Object Classification File with its object ID.
 3. Apply the protection of that tier.
 
 | Implementation effort | User impact |
@@ -24,7 +24,7 @@ A finding that is a false positive, or whose risk is accepted until a date, is a
 - [EntraOps classification and object tiers](https://www.entraops.com/docs/core/index.html)
 - [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
 - [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
-- [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)
+- [EntraOps finding rules](https://github.com/Cloud-Architekt/entraops-insiders/blob/main/EntraOps/Private/Findings/FindingRules.json)
 
 <!--- Results --->
 %TestResult%

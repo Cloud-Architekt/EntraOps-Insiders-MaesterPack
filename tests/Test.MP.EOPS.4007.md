@@ -1,4 +1,4 @@
-**Fails when:** A user that is, or holds role assignments of, Tier 0 or 1 (Control, Management or Workload Plane) is the registered owner of devices that are not its associated privileged access workstation (by default the custom security attribute associatedSecureAdminWorkstation, with the device ID or the object ID of the device). Without an associated PAW, every owned device is reported (and EO.4008 for Control Plane users). The privileged account registered or uses regular devices, where its tokens are exposed to threats of daily work.
+**Fails when:** A user that is, or holds role assignments of, Tier 0 or 1 (Control, Management or Workload Plane) is the registered owner of devices that are not its associated privileged access workstation (by default the custom security attribute associatedSecureAdminWorkstation, with the device ID or the object ID of the device). Without an associated PAW, every owned device is reported (and EO.4008 for Control Plane users). The privileged account registered regular devices; device ownership does not prove sign-ins from them, but a privileged account on a regular device exposes its tokens to threats of daily work.
 
 EntraOps evaluates this rule as EO.4007 (PrivilegedAssets.deviceNotPaw). The EntraOps reports show the same result as the finding 'Owns non-PAW devices'.
 
@@ -23,7 +23,7 @@ A finding that is a false positive, or whose risk is accepted until a date, is a
 - [Assign custom security attributes to users](https://learn.microsoft.com/entra/identity/users/users-custom-security-attributes)
 - [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
 - [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
-- [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)
+- [EntraOps finding rules](https://github.com/Cloud-Architekt/entraops-insiders/blob/main/EntraOps/Private/Findings/FindingRules.json)
 
 <!--- Results --->
 %TestResult%

@@ -1,4 +1,4 @@
-**Fails when:** A guest user holds Control or Management Plane access. The guest's home organization controls the authentication, credentials and lifecycle of the account, and controls of this tenant such as device compliance apply only when the cross-tenant access settings trust the home tenant. External users with a member account (userType Member) are not reported.
+**Fails when:** A guest user holds Control or Management Plane access. The guest's home organization controls the authentication, credentials and lifecycle of the account, and controls of this tenant such as device compliance apply only when the cross-tenant access settings trust the home tenant. External users with a member account (userType Member) are not reported (EO.4011 reports those with Control Plane access). Principals of the managing tenant (ManagingTenantId of EntraOpsConfig.json, the governing tenant of Tenant Governance) are informational only: they pass, a note names them, and EO.4010 lists their role assignments.
 
 EntraOps evaluates this rule as EO.4002 (PrivilegedEAM.guestPrivileged). The EntraOps reports show the same result as the finding 'Guest user with privileged access'.
 
@@ -21,7 +21,7 @@ A finding that is a false positive, or whose risk is accepted until a date, is a
 - [Secure access practices for administrators in Microsoft Entra ID](https://learn.microsoft.com/entra/identity/role-based-access-control/security-planning)
 - [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
 - [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
-- [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)
+- [EntraOps finding rules](https://github.com/Cloud-Architekt/entraops-insiders/blob/main/EntraOps/Private/Findings/FindingRules.json)
 
 <!--- Results --->
 %TestResult%

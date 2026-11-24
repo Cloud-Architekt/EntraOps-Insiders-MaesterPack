@@ -343,6 +343,31 @@
       "Results": null
     },
     {
+      "RuleId": "EO.2005",
+      "Key": "unclassifiedTarget",
+      "Area": "AccessPackageFlow",
+      "Category": "Classification",
+      "Title": "Access package target group without classification",
+      "CheckTitle": "Access package target groups without role assignments have a declared tier.",
+      "Severity": "Info",
+      "Investigate": true,
+      "MaesterTestId": "MP.EOPS.2005",
+      "Status": "Failed",
+      "Reason": null,
+      "Parameters": {},
+      "EvaluatedCount": 2,
+      "FailedCount": 1,
+      "Results": {
+        "Instance": {
+          "Id": "55555555-5555-5555-5555-555555555555",
+          "ObjectId": "55555555-5555-5555-5555-555555555555",
+          "ObjectType": "group",
+          "DisplayName": "Contoso Access Package Group"
+        },
+        "Message": "Synthetic finding of EO.2005 for the pack tests."
+      }
+    },
+    {
       "RuleId": "EO.3001",
       "Key": "permanentControlPlaneAssignment",
       "Area": "PrivilegedEAM",
@@ -772,6 +797,23 @@
       "Results": null
     },
     {
+      "RuleId": "EO.4011",
+      "Key": "foreignPrincipalControlPlane",
+      "Area": "PrivilegedEAM",
+      "Category": "AccountProtection",
+      "Title": "Privileged principal managed by another tenant",
+      "CheckTitle": "No principal managed by another tenant has Control Plane access, apart from the managing tenant.",
+      "Severity": "High",
+      "MaesterTestId": "MP.EOPS.4011",
+      "Status": "Passed",
+      "Reason": null,
+      "Note": "1 principal of the managing tenant (Contoso Holding) has Control Plane access and is accepted.",
+      "Parameters": {},
+      "EvaluatedCount": 2,
+      "FailedCount": 0,
+      "Results": null
+    },
+    {
       "RuleId": "EO.5001",
       "Key": "foreignWorkloadControlPlane",
       "Area": "PrivilegedEAM",
@@ -1088,6 +1130,23 @@
       "Severity": "Info",
       "Investigate": true,
       "MaesterTestId": "MP.EOPS.8001",
+      "Status": "Skipped",
+      "Reason": null,
+      "Parameters": {},
+      "EvaluatedCount": 0,
+      "FailedCount": 0,
+      "Results": null
+    },
+    {
+      "RuleId": "EO.8003",
+      "Key": "newDelegatedPrivilegedPermission",
+      "Area": "PrivilegeHistory",
+      "Category": "Drift",
+      "Title": "New delegated privileged permission",
+      "CheckTitle": "New delegated Control or Management Plane permissions since the previous snapshot should be investigated.",
+      "Severity": "Info",
+      "Investigate": true,
+      "MaesterTestId": "MP.EOPS.8003",
       "Status": "Skipped",
       "Reason": null,
       "Parameters": {},

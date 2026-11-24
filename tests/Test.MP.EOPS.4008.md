@@ -1,4 +1,4 @@
-**Fails when:** A user that is Control Plane, or holds Control Plane role assignments, has no associated privileged access workstation (by default the custom security attribute associatedSecureAdminWorkstation, with the device ID or the object ID of the device; a reference that matches no device counts as none). EntraOps cannot tie the account to a PAW, and Conditional Access device filters for PAWs cannot target it.
+**Fails when:** A user that is Control Plane, or holds Control Plane role assignments, has no associated privileged access workstation (by default the custom security attribute associatedSecureAdminWorkstation, with the device ID or the object ID of the device; a reference that matches no device counts as none). EntraOps cannot tie the account to a PAW, and Conditional Access device filters cannot restrict the account to its own PAW (a generic device filter, for example on a PAW extension attribute, does not need the association).
 
 EntraOps evaluates this rule as EO.4008 (PrivilegedAssets.pawMissing). The EntraOps reports show the same result as the finding 'No associated PAW'.
 
@@ -21,7 +21,7 @@ A finding that is a false positive, or whose risk is accepted until a date, is a
 - [Assign custom security attributes to users](https://learn.microsoft.com/entra/identity/users/users-custom-security-attributes)
 - [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
 - [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
-- [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)
+- [EntraOps finding rules](https://github.com/Cloud-Architekt/entraops-insiders/blob/main/EntraOps/Private/Findings/FindingRules.json)
 
 <!--- Results --->
 %TestResult%

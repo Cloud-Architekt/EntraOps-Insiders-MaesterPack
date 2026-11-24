@@ -1,4 +1,4 @@
-**Reported when:** A service principal (application, managed identity or agent identity) holds Control Plane access. Workload identities cannot use PIM, so the access is permanent, and whoever controls its credentials, owners or the resource behind a managed identity has the same access. Service principals of Microsoft first-party applications are not reported. Delegated permissions do not count as access of the object: the application acts within the rights of the signed-in user (EO.5005 reports delegated Control Plane permissions).
+**Reported when:** A service principal (application, managed identity or agent identity) holds Control Plane access. Service principals cannot hold eligible assignments in PIM, so the access is standing (permanent or time-bound active), and whoever controls its credentials, owners or the resource behind a managed identity has the same access. Service principals of Microsoft first-party applications are not reported. Delegated permissions do not count as access of the object: the application acts within the rights of the signed-in user (EO.5005 reports delegated Control Plane permissions).
 
 EntraOps evaluates this rule as EO.5004 (PrivilegedEAM.workloadControlPlane). The EntraOps reports show the same result as the finding 'Workload identity with Control Plane access'. The check asks for a review, not a fix: its findings are reported as Investigate, not as Failed.
 
@@ -23,7 +23,7 @@ A finding that is a false positive, or whose risk is accepted until a date, is a
 - [Secure access practices for administrators in Microsoft Entra ID](https://learn.microsoft.com/entra/identity/role-based-access-control/security-planning)
 - [EntraOps findings and Maester Pack](https://www.entraops.com/docs/reportings/index.html#findings)
 - [EntraOps finding exceptions](https://www.entraops.com/docs/reportings/index.html#finding-exceptions)
-- [EntraOps finding rules](https://github.com/Cloud-Architekt/EntraOps/blob/main/EntraOps/Private/Findings/FindingRules.json)
+- [EntraOps finding rules](https://github.com/Cloud-Architekt/entraops-insiders/blob/main/EntraOps/Private/Findings/FindingRules.json)
 
 <!--- Results --->
 %TestResult%

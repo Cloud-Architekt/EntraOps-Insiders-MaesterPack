@@ -1007,8 +1007,9 @@ function ConvertTo-EntraOpsPackResultTable {
     $findingsView = if ($ReportBase) { "$($ReportBase)PrivilegedAssets/index.html?view=findings#rule=$([uri]::EscapeDataString($Rule.RuleId))" }
     $objects = @(Get-EntraOpsPackResultObject -Rule $Rule -Results $Results -ReportBase $ReportBase -PortalUrl $PortalUrl)
     if ($ByObject) { $objects = @($objects | Sort-Object Count -Descending -Stable) }
-    # Classified objects first: their findings are certain, those of unclassified objects depend on their tier.
-    else { $objects = @($objects | Sort-Object { $_.Object.TierKey -eq 'Unclassified' } -Stable) }
+    # Classified objects first: their findings are certain, those of unclassified objects depend on their tier. Rules
+    # that judge the role assignments (not the tier of the object) keep the order of EntraOps.
+    elseif (Test-EntraOpsPackObjectTierRule -RuleId $Rule.RuleId) { $objects = @($objects | Sort-Object { $_.Object.TierKey -eq 'Unclassified' } -Stable) }
     # Names shared by objects with different IDs (for example service principals of the same application name).
     $ambiguous = @($objects | ForEach-Object { $_.Object } | Group-Object Name | Where-Object { $_.Count -gt 1 } | ForEach-Object Name)
     foreach ($entry in $objects) { $entry | Add-Member -NotePropertyName Cell -NotePropertyValue (ConvertTo-EntraOpsPackObjectText -Object $entry.Object -WithId:($entry.Object.Name -in $ambiguous) -WithType -MaxNameLength 40) }
@@ -1158,7 +1159,7 @@ function ConvertTo-EntraOpsPackAcceptedTable {
 function Get-EntraOpsPackRuleSettingText {
     <#
     .SYNOPSIS
-    The settings of a rule that EntraOps evaluated it with (Parameters, from the Findings section of EntraOpsConfig.json), as one line, or nothing.
+    The settings of a rule that EntraOps evaluated it with (Parameters, from EntraOpsConfig.json: the Findings section, or the root for ManagingTenantId and ManagingTenantName), as one line, or nothing.
     #>
     [CmdletBinding()]
     [OutputType([string])]
@@ -1169,11 +1170,33 @@ function Get-EntraOpsPackRuleSettingText {
 
     if ($null -eq $Rule.Parameters) { return $null }
     $settings = @($Rule.Parameters.PSObject.Properties | Where-Object { $_.MemberType -eq 'NoteProperty' } | ForEach-Object {
-            $value = if ($_.Value -is [System.Collections.IEnumerable] -and $_.Value -isnot [string]) { $(if (@($_.Value).Count) { @($_.Value) -join ', ' } else { 'none' }) } else { [string]$_.Value }
+            $value = if ($_.Value -is [System.Collections.IEnumerable] -and $_.Value -isnot [string]) { $(if (@($_.Value).Count) { @($_.Value) -join ', ' } else { 'none' }) } elseif ([string]::IsNullOrWhiteSpace([string]$_.Value)) { 'none' } else { [string]$_.Value }
             "$($_.Name): $value"
         })
     if (-not $settings.Count) { return $null }
-    '🔧 ' + (ConvertTo-EntraOpsPackMarkdownCell "EntraOps settings of this check (Findings in EntraOpsConfig.json): $($settings -join '; ').")
+    '🔧 ' + (ConvertTo-EntraOpsPackMarkdownCell "EntraOps settings of this check (EntraOpsConfig.json): $($settings -join '; ').")
+}
+
+function Test-EntraOpsPackObjectTierRule {
+    <#
+    .SYNOPSIS
+    Whether the findings of a rule depend on the tier of the object, so that unclassified objects are listed last with the advice to classify them first.
+
+    .DESCRIPTION
+    The rules about principals of other tenants (EO.4002, EO.4010, EO.4011, EO.5001) judge the tier of the role
+    assignments: classifying the object changes nothing in their result, and an object of another tenant cannot get
+    custom security attributes of this tenant. Their findings keep the order of EntraOps (for EO.4010 by the tier of
+    the role assignment) and show no advice to classify.
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string] $RuleId
+    )
+
+    $RuleId -notin @('EO.4002', 'EO.4010', 'EO.4011', 'EO.5001')
 }
 
 function Get-EntraOpsPackCountText {
@@ -1580,7 +1603,7 @@ function Test-EntraOpsPackFinding {
             # Findings on unclassified objects count (for example access to the Control Plane), but their tier is
             # unknown: classifying these objects comes first. Not for the rule that reports the classification itself.
             $onUnclassified = @($results | Where-Object { "$($_.Instance.AdminTierLevelName)" -eq 'Unclassified' })
-            if ($onUnclassified.Count -and $RuleId -ne 'EO.2001') {
+            if ($onUnclassified.Count -and $RuleId -ne 'EO.2001' -and (Test-EntraOpsPackObjectTierRule -RuleId $RuleId)) {
                 $unclassifiedIds = @($onUnclassified | ForEach-Object { if ($_.Instance.ObjectId) { [string]$_.Instance.ObjectId } else { [string]$_.Instance.Id } } | Select-Object -Unique)
                 # EO.2001 asks for the classification of an object, but not of every one: it does not report the service
                 # principals of Microsoft first-party applications. Only the objects it lists are sent there.
